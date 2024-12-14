@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static org.buaa.project.common.enums.QAErrorCodeEnum.QUESTION_ACCESS_CONTROL_ERROR;
 import static org.buaa.project.common.enums.QAErrorCodeEnum.QUESTION_NULL;
@@ -112,12 +114,33 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
 
     @Override
     public IPage<QuestionPageRespDTO> pageQuestion(QuestionPageReqDTO requestParam) {
+        String search = requestParam.getSearch();
         LambdaQueryWrapper<QuestionDO> queryWrapper = Wrappers.lambdaQuery(QuestionDO.class)
-                    .eq(QuestionDO::getDelFlag, 0)
-                    .eq(requestParam.getSolvedFlag() != 2 , QuestionDO::getSolvedFlag, requestParam.getSolvedFlag())
-                    .eq(QuestionDO::getCategoryId, requestParam.getCategoryId());
+                .eq(QuestionDO::getDelFlag, 0)
+                .eq(requestParam.getSolvedFlag() != 2 , QuestionDO::getSolvedFlag, requestParam.getSolvedFlag())
+                .eq(requestParam.getCategoryId() != null, QuestionDO::getCategoryId, requestParam.getCategoryId())
+                .and(StringUtils.isNotBlank(search), wrapper ->
+                        wrapper.like(QuestionDO::getTitle, search)
+                                .or()
+                                .like(QuestionDO::getContent, search)
+                );
+
         IPage<QuestionDO> page = baseMapper.selectPage(requestParam, queryWrapper);
-        return page.convert(each -> BeanUtil.toBean(each, QuestionPageRespDTO.class));
+        return page.convert(each -> {
+            QuestionPageRespDTO dto = BeanUtil.toBean(each, QuestionPageRespDTO.class);
+            if (StringUtils.isNotBlank(search)) {
+                // 处理高亮
+                String highlightTemplate = "<mark>%s</mark>";
+                String highlightSearch = String.format(highlightTemplate, search);
+                if (StringUtils.isNotBlank(dto.getTitle())) {
+                    dto.setTitle(dto.getTitle().replaceAll(Pattern.quote(search), highlightSearch));
+                }
+                if (StringUtils.isNotBlank(dto.getContent())) {
+                    dto.setContent(dto.getContent().replaceAll(Pattern.quote(search), highlightSearch));
+                }
+            }
+            return dto;
+        });
     }
 
     @Override

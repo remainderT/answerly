@@ -16,6 +16,11 @@ public class QuestionPageReqDTO extends Page<QuestionDO> {
     private Long categoryId;
 
     /**
+     * 搜索词
+     */
+    private String search;
+
+    /**
      * 是否解决 0：未解决 1：已解决 2：全部
      */
     private Integer solvedFlag;
