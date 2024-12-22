@@ -60,6 +60,7 @@ public class LoginCheckFilter implements Filter {
         String method = httpServletRequest.getMethod();
         if (requireLogin(requestURI, method) && UserContext.getUsername() == null) {
             returnJson((HttpServletResponse) servletResponse, JSON.toJSONString(Results.failure(new ClientException(USER_TOKEN_NULL))));
+            return;
         }
 
         filterChain.doFilter(servletRequest, servletResponse);
