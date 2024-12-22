@@ -83,7 +83,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         }
         UserRespDTO result = new UserRespDTO();
         BeanUtils.copyProperties(userDO, result);
-        result.setLikeCount(likeService.findUserLikeCount(String.valueOf(userDO.getId())));
+        result.setLikeCount(likeService.findUserLikeCount(userDO.getId()));
         return result;
     }
 

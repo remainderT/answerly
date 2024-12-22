@@ -13,7 +13,7 @@ public interface LikeService {
      * @param entityType
      * @param entityId
      */
-    int like(String userId, EntityTypeEnum entityType, long entityId, String entityUserId);
+    void like(long userId, EntityTypeEnum entityType, long entityId, long entityUserId);
 
     /**
      * 查询实体点赞数量
@@ -30,12 +30,12 @@ public interface LikeService {
      * @param entityId
      * @return
      */
-    String findEntityLikeStatus(String userId, EntityTypeEnum entityType, long entityId);
+    String findEntityLikeStatus(long userId, EntityTypeEnum entityType, long entityId);
 
     /**
      * 查询用户点赞数量
      * @param userId
      * @return
      */
-    int findUserLikeCount(String userId);
+    int findUserLikeCount(long userId);
 }

@@ -56,13 +56,13 @@ public class AnswerServiceImpl extends ServiceImpl<AnswerMapper, AnswerDO> imple
     public void likeAnswer(long id, long entityUserId){
         checkAnswerExist(id);
 
-        String userId = UserContext.getUserId();
-        likeService.like(userId, EntityTypeEnum.ANSWER, id, String.valueOf(entityUserId));
+        long userId = UserContext.getUserId();
+        likeService.like(userId, EntityTypeEnum.ANSWER, id, entityUserId);
     }
 
     @Override
     public void uploadAnswer(AnswerUploadReqDTO reqDTO){
-        long userId = Long.parseLong(UserContext.getUserId());
+        long userId = UserContext.getUserId();
         AnswerDO answerDO = BeanUtil.copyProperties(reqDTO, AnswerDO.class);
         answerDO.setUserId(userId);
         answerDO.setUsername(UserContext.getUsername());
@@ -110,7 +110,7 @@ public class AnswerServiceImpl extends ServiceImpl<AnswerMapper, AnswerDO> imple
     public IPage<AnswerPageRespDTO> pageMyAnswer(AnswerMinePageReqDTO requestParam){
         LambdaQueryWrapper<AnswerDO> queryWrapper = Wrappers.lambdaQuery(AnswerDO.class)
                 .eq(AnswerDO::getDelFlag, 0)
-                .eq(AnswerDO::getUserId, Integer.valueOf(UserContext.getUserId()));
+                .eq(AnswerDO::getUserId, UserContext.getUserId());
         IPage<AnswerDO> page = baseMapper.selectPage(requestParam, queryWrapper);
 
         List<AnswerPageRespDTO> answerPageRespDTOList = page.getRecords().stream().map(answerDO -> {
@@ -174,8 +174,8 @@ public class AnswerServiceImpl extends ServiceImpl<AnswerMapper, AnswerDO> imple
     @Override
     public void checkAnswerOwner(long id) {
         AnswerDO answer = baseMapper.selectById(id);
-        String userId = UserContext.getUserId();
-        if (!answer.getUserId().equals(Long.valueOf(userId))) {
+        long userId = UserContext.getUserId();
+        if (!answer.getUserId().equals(userId)) {
             throw new ClientException(ANSWER_ACCESS_CONTROL_ERROR);
         }
     }

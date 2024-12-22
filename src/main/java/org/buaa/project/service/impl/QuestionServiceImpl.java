@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.buaa.project.common.biz.user.UserContext;
 import org.buaa.project.common.convention.exception.ClientException;
 import org.buaa.project.common.enums.EntityTypeEnum;
-import org.buaa.project.common.enums.MessageTypeEnum;
 import org.buaa.project.dao.entity.QuestionDO;
 import org.buaa.project.dao.mapper.QuestionMapper;
 import org.buaa.project.dto.req.QuestionMinePageReqDTO;
@@ -19,7 +18,6 @@ import org.buaa.project.dto.req.QuestionUpdateReqDTO;
 import org.buaa.project.dto.req.QuestionUploadReqDTO;
 import org.buaa.project.dto.resp.QuestionPageRespDTO;
 import org.buaa.project.dto.resp.QuestionRespDTO;
-import org.buaa.project.mq.MqEvent;
 import org.buaa.project.mq.MqProducer;
 import org.buaa.project.service.LikeService;
 import org.buaa.project.service.QuestionService;
@@ -86,18 +84,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
     public void likeQuestion(Long id, Long entityUserId) {
         checkQuestionExist(id);
 
-        String userId = UserContext.getUserId();
-        int isLike = likeService.like(userId, EntityTypeEnum.QUESTION, id, String.valueOf(entityUserId));
-        if (isLike == 1) {
-            MqEvent event = MqEvent.builder()
-                    .messageType(MessageTypeEnum.Like)
-                    .entityType(EntityTypeEnum.QUESTION)
-                    .userId(Long.valueOf(userId))
-                    .entityId(id)
-                    .entityUserId(entityUserId)
-                    .build();
-            producer.send(event);
-        }
+        long userId = UserContext.getUserId();
+        likeService.like(userId, EntityTypeEnum.QUESTION, id, entityUserId);
     }
 
     @Override
@@ -136,7 +124,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
     public IPage<QuestionPageRespDTO> pageMyQuestion(QuestionMinePageReqDTO requestParam) {
         LambdaQueryWrapper<QuestionDO> queryWrapper = Wrappers.lambdaQuery(QuestionDO.class)
                 .eq(QuestionDO::getDelFlag, 0)
-                .eq(QuestionDO::getUserId, Integer.valueOf(UserContext.getUserId()));
+                .eq(QuestionDO::getUserId, UserContext.getUserId());
         IPage<QuestionDO> page = baseMapper.selectPage(requestParam, queryWrapper);
         return page.convert(each -> BeanUtil.toBean(each, QuestionPageRespDTO.class));
     }
@@ -169,8 +157,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
 
     public void checkQuestionOwner(Long id) {
         QuestionDO question = baseMapper.selectById(id);
-        String userId = UserContext.getUserId();
-        if (!question.getUserId().equals(Long.valueOf(userId))) {
+        long userId = UserContext.getUserId();
+        if (!question.getUserId().equals(userId)) {
             throw new ClientException(QUESTION_ACCESS_CONTROL_ERROR);
         }
     }

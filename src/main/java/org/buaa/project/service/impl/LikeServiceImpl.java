@@ -2,6 +2,9 @@ package org.buaa.project.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.buaa.project.common.enums.EntityTypeEnum;
+import org.buaa.project.common.enums.MessageTypeEnum;
+import org.buaa.project.mq.MqEvent;
+import org.buaa.project.mq.MqProducer;
 import org.buaa.project.service.LikeService;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -17,8 +20,10 @@ public class LikeServiceImpl implements LikeService {
 
     private final StringRedisTemplate stringRedisTemplate;
 
+    private final MqProducer producer;
+
     @Override
-    public int like(String userId, EntityTypeEnum entityType, long entityId, String entityUserId) {
+    public void like(long userId, EntityTypeEnum entityType, long entityId, long entityUserId) {
         String entityLikeKey = String.format(PREFIX_ENTITY_LIKE, entityType, entityId);
         String userLikeKey = String.format(PREFIX_ENTITY_LIKE, EntityTypeEnum.USER, entityUserId);
         boolean isMember = Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(entityLikeKey, userId));
@@ -26,10 +31,17 @@ public class LikeServiceImpl implements LikeService {
             stringRedisTemplate.opsForSet().remove(entityLikeKey, userId);
             stringRedisTemplate.opsForValue().decrement(userLikeKey);
         } else {
-            stringRedisTemplate.opsForSet().add(entityLikeKey, userId);
+            stringRedisTemplate.opsForSet().add(entityLikeKey, String.valueOf(userId));
             stringRedisTemplate.opsForValue().increment(userLikeKey);
+            MqEvent event = MqEvent.builder()
+                    .messageType(MessageTypeEnum.Like)
+                    .entityType(entityType)
+                    .userId(Long.valueOf(userId))
+                    .entityId(entityId)
+                    .entityUserId(Long.valueOf(entityUserId))
+                    .build();
+            producer.send(event);
         }
-        return isMember ? 0 : 1;
     }
 
     @Override
@@ -40,13 +52,13 @@ public class LikeServiceImpl implements LikeService {
     }
 
     @Override
-    public String findEntityLikeStatus(String userId, EntityTypeEnum entityType, long entityId) {
+    public String findEntityLikeStatus(long userId, EntityTypeEnum entityType, long entityId) {
         String entityLikeKey = String.format(PREFIX_ENTITY_LIKE, entityType, entityId);
         return Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(entityLikeKey, userId)) ? "已点赞" : "未点赞";
     }
 
     @Override
-    public int findUserLikeCount(String userId) {
+    public int findUserLikeCount(long userId) {
         String entityLikeKey = String.format(PREFIX_ENTITY_LIKE, EntityTypeEnum.USER, userId);
         String size = stringRedisTemplate.opsForValue().get(entityLikeKey);
         return size != null ? Integer.parseInt(size) : 0;
