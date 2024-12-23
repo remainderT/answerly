@@ -26,9 +26,9 @@ public class LikeServiceImpl implements LikeService {
     public void like(long userId, EntityTypeEnum entityType, long entityId, long entityUserId) {
         String entityLikeKey = String.format(PREFIX_ENTITY_LIKE, entityType, entityId);
         String userLikeKey = String.format(PREFIX_ENTITY_LIKE, EntityTypeEnum.USER, entityUserId);
-        boolean isMember = Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(entityLikeKey, userId));
+        boolean isMember = Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(entityLikeKey, String.valueOf(userId)));
         if (isMember) {
-            stringRedisTemplate.opsForSet().remove(entityLikeKey, userId);
+            stringRedisTemplate.opsForSet().remove(entityLikeKey, String.valueOf(userId));
             stringRedisTemplate.opsForValue().decrement(userLikeKey);
         } else {
             stringRedisTemplate.opsForSet().add(entityLikeKey, String.valueOf(userId));
@@ -36,9 +36,9 @@ public class LikeServiceImpl implements LikeService {
             MqEvent event = MqEvent.builder()
                     .messageType(MessageTypeEnum.Like)
                     .entityType(entityType)
-                    .userId(Long.valueOf(userId))
+                    .userId(userId)
                     .entityId(entityId)
-                    .entityUserId(Long.valueOf(entityUserId))
+                    .entityUserId(entityUserId)
                     .build();
             producer.send(event);
         }
@@ -54,7 +54,7 @@ public class LikeServiceImpl implements LikeService {
     @Override
     public String findEntityLikeStatus(long userId, EntityTypeEnum entityType, long entityId) {
         String entityLikeKey = String.format(PREFIX_ENTITY_LIKE, entityType, entityId);
-        return Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(entityLikeKey, userId)) ? "已点赞" : "未点赞";
+        return Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(entityLikeKey, String.valueOf(userId))) ? "已点赞" : "未点赞";
     }
 
     @Override
