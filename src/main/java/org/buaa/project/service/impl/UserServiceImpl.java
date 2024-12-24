@@ -135,6 +135,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             if (inserted < 1) {
                 throw new ClientException(USER_SAVE_ERROR);
             }
+            userDO = baseMapper.selectOne(Wrappers.lambdaQuery(UserDO.class)
+                    .eq(UserDO::getUsername, requestParam.getUsername()));
             stringRedisTemplate.opsForValue().set(USER_INFO_KEY + requestParam.getUsername(), JSON.toJSONString(userDO));
         } catch (DuplicateKeyException ex) {
             throw new ClientException(USER_EXIST);

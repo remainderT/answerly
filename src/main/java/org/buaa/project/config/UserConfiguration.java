@@ -3,6 +3,7 @@ package org.buaa.project.config;
 import org.buaa.project.common.biz.user.LoginCheckFilter;
 import org.buaa.project.common.biz.user.RefreshTokenFilter;
 import org.buaa.project.common.biz.user.UserFlowRiskControlFilter;
+import org.buaa.project.dao.mapper.UserMapper;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,9 +19,9 @@ public class UserConfiguration {
      * 刷新 Token 过滤器
      */
     @Bean
-    public FilterRegistrationBean<RefreshTokenFilter> globalUserTransmitFilter(StringRedisTemplate stringRedisTemplate) {
+    public FilterRegistrationBean<RefreshTokenFilter> globalUserTransmitFilter(StringRedisTemplate stringRedisTemplate, UserMapper userMapper) {
         FilterRegistrationBean<RefreshTokenFilter> registration = new FilterRegistrationBean<>();
-        registration.setFilter(new RefreshTokenFilter(stringRedisTemplate));
+        registration.setFilter(new RefreshTokenFilter(stringRedisTemplate, userMapper));
         registration.addUrlPatterns("/*");
         registration.setOrder(0);
         return registration;

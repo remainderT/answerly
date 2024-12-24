@@ -2,6 +2,7 @@ package org.buaa.project.common.biz.user;
 
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -11,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.buaa.project.dao.entity.UserDO;
+import org.buaa.project.dao.mapper.UserMapper;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.io.IOException;
@@ -29,6 +31,8 @@ public class RefreshTokenFilter implements Filter {
 
     private final StringRedisTemplate stringRedisTemplate;
 
+    private final UserMapper userMapper;
+
     @SneakyThrows
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
@@ -45,6 +49,10 @@ public class RefreshTokenFilter implements Filter {
             return;
         }
         UserDO userDO = JSON.parseObject(stringRedisTemplate.opsForValue().get(USER_INFO_KEY + username), UserDO.class);
+        if (userDO == null) {
+            userDO = userMapper.selectOne(new QueryWrapper<UserDO>().eq("username", username));
+            stringRedisTemplate.opsForValue().set(USER_INFO_KEY + username, JSON.toJSONString(userDO), USER_LOGIN_EXPIRE, TimeUnit.DAYS);
+        }
         UserInfoDTO userInfoDTO = new UserInfoDTO();
         userInfoDTO.setToken(token);
         userInfoDTO.setUsername(username);
