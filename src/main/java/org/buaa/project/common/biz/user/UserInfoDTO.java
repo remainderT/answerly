@@ -27,6 +27,11 @@ public class UserInfoDTO {
     private String username;
 
     /**
+     * 盐
+     */
+    private String salt;
+
+    /**
      * 学生类别
      */
     private String userType;

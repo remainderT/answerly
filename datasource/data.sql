@@ -9,7 +9,8 @@ CREATE TABLE `user` (
                         `username`      varchar(256) NOT NULL COMMENT '用户名',
                         `password`      varchar(512) NOT NULL COMMENT '密码',
                         `mail`          varchar(20)  NOT NULL COMMENT '邮箱',
-                        `avatar`         varchar(60)     DEFAULT NULL COMMENT '头像',
+                        `salt`          varchar(20)  NOT NULL COMMENT '盐',
+                        `avatar`        varchar(60)     DEFAULT NULL COMMENT '头像',
                         `phone`         varchar(20)     DEFAULT NULL COMMENT '手机号',
                         `introduction`  varchar(1024)   DEFAULT NULL COMMENT '个人简介',
                         `like_count`    int(11)         DEFAULT 0 COMMENT '点赞数',
@@ -24,8 +25,8 @@ CREATE TABLE `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='学生和义工和管理员';
 
 
-INSERT INTO `user` (`username`, `password`, `mail`, `avatar`, `phone`, `introduction`, `like_count`, `solved_count`, `user_type`, `status`, `create_time`, `update_time`, `del_flag`)
-VALUES ('admin', 'Vx7!nE9z$T4m@P2qW#jZ', 'admin@example.com', NULL, NULL, 'Administrator account', 0, 0, 'admin', 1, NOW(), NOW(), 0);
+INSERT INTO `user` (`username`, `password`, `salt`, `mail`, `avatar`, `phone`, `introduction`, `like_count`, `solved_count`, `user_type`, `status`, `create_time`, `update_time`, `del_flag`)
+VALUES ('admin', 'e62ee014c28a13e75d90df35d04f6faf', `13246`,'admin@example.com', NULL, NULL, 'Administrator account', 0, 0, 'admin', 1, NOW(), NOW(), 0);
 
 
 

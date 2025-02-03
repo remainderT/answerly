@@ -34,6 +34,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -131,6 +132,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         try {
             UserDO userDO = BeanUtil.toBean(requestParam, UserDO.class);
             userDO.setId(CustomIdGenerator.getId());
+            userDO.setSalt(UUID.randomUUID().toString().substring(0, 5));
+            userDO.setPassword(DigestUtils.md5DigestAsHex((userDO.getPassword() + userDO.getSalt()).getBytes()));
             int inserted = baseMapper.insert(userDO);
             if (inserted < 1) {
                 throw new ClientException(USER_SAVE_ERROR);
@@ -153,7 +156,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
                 .eq(UserDO::getUsername, requestParam.getUsername());
         UserDO userDO = baseMapper.selectOne(queryWrapper);
-        if (!Objects.equals(userDO.getPassword(), requestParam.getPassword())) {
+        String password = DigestUtils.md5DigestAsHex((requestParam.getPassword() + userDO.getSalt()).getBytes());
+        if (!Objects.equals(userDO.getPassword(), password)) {
             throw new ClientException(USER_PASSWORD_ERROR);
         }
         /**
@@ -197,9 +201,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         if (!requestParam.getOldUsername().equals(requestParam.getNewUsername()) && hasUsername(requestParam.getNewUsername())) {
             throw new ClientException(USER_NAME_EXIST);
         }
+        String password = DigestUtils.md5DigestAsHex((requestParam.getPassword() + UserContext.getSalt()).getBytes());
         UserDO userDO = UserDO.builder()
                         .username(requestParam.getNewUsername())
-                        .password(requestParam.getPassword())
+                        .password(password)
                         .avatar(requestParam.getAvatar())
                         .phone(requestParam.getPhone())
                         .introduction(requestParam.getIntroduction())

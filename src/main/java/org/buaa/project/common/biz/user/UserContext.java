@@ -60,6 +60,16 @@ public final class UserContext {
     }
 
     /**
+     * 获取上下文中用户盐
+     *
+     * @return 用户盐
+     */
+    public static String getSalt() {
+        UserInfoDTO userInfoDTO = USER_THREAD_LOCAL.get();
+        return Optional.ofNullable(userInfoDTO).map(UserInfoDTO::getSalt).orElse(null);
+    }
+
+    /**
      * 清理用户上下文
      */
     public static void removeUser() {

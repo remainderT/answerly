@@ -38,6 +38,11 @@ public class UserDO extends BaseDO {
     private String mail;
 
     /**
+     * 盐
+     */
+    private String salt;
+
+    /**
      * 手机号
      */
     private String phone;

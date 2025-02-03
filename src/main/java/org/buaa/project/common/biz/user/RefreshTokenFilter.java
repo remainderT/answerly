@@ -53,11 +53,13 @@ public class RefreshTokenFilter implements Filter {
             userDO = userMapper.selectOne(new QueryWrapper<UserDO>().eq("username", username));
             stringRedisTemplate.opsForValue().set(USER_INFO_KEY + username, JSON.toJSONString(userDO), USER_LOGIN_EXPIRE, TimeUnit.DAYS);
         }
-        UserInfoDTO userInfoDTO = new UserInfoDTO();
-        userInfoDTO.setToken(token);
-        userInfoDTO.setUsername(username);
-        userInfoDTO.setUserId(String.valueOf(userDO.getId()));
-        userInfoDTO.setUserType(userDO.getUserType());
+        UserInfoDTO userInfoDTO = UserInfoDTO.builder().
+                userId(String.valueOf(userDO.getId())).
+                username(username).
+                userType(userDO.getUserType()).
+                salt(userDO.getSalt()).
+                token(token).
+                build();
         UserContext.setUser(userInfoDTO);
 
         stringRedisTemplate.expire(USER_LOGIN_KEY + username, USER_LOGIN_EXPIRE, TimeUnit.DAYS);
