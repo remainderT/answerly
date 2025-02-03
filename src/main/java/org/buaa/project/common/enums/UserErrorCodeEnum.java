@@ -41,6 +41,8 @@ public enum UserErrorCodeEnum implements IErrorCode {
 
     USER_TOKEN_NULL("A000204", "用户未登录"),
 
+    USER_LOGIN_CAPTCHA_ERROR("A000205","用户登录验证码错误"),
+
     USER_NULL("A000301", "用户记录不存在"),
 
     USER_UPDATE_ERROR("A000302", "用户信息更新失败");
@@ -63,7 +65,6 @@ public enum UserErrorCodeEnum implements IErrorCode {
     public String message() {
         return message;
     }
-
 
 
 }

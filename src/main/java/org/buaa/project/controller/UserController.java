@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.ServletRequest;
+
 
 /**
  * 用户管理控制层
@@ -75,8 +77,8 @@ public class UserController {
      * 用户登录
      */
     @PostMapping("/api/answerly/v1/user/login")
-    public Result<UserLoginRespDTO> login(@RequestBody UserLoginReqDTO requestParam) {
-        return Results.success(userService.login(requestParam));
+    public Result<UserLoginRespDTO> login(@RequestBody UserLoginReqDTO requestParam, ServletRequest request) {
+        return Results.success(userService.login(requestParam, request));
     }
 
     /**

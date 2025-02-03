@@ -50,4 +50,9 @@ public class RedisCacheConstants {
      */
     public static final String STREAM_GROUP_KEY = "answerly:redis-stream:only-group";
 
+    /**
+     * 用户登录图片验证码
+     */
+    public static final String USER_LOGIN_CAPTCHA_KEY = "answerly:user:login:captcha:";
+
 }

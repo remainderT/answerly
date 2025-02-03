@@ -1,6 +1,7 @@
 package org.buaa.project.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import jakarta.servlet.ServletRequest;
 import org.buaa.project.dao.entity.UserDO;
 import org.buaa.project.dto.req.UserLoginReqDTO;
 import org.buaa.project.dto.req.UserRegisterReqDTO;
@@ -49,7 +50,7 @@ public interface UserService extends IService<UserDO> {
      * @param requestParam 用户登录请求参数
      * @return 用户登录返回参数 Token
      */
-    UserLoginRespDTO login(UserLoginReqDTO requestParam);
+    UserLoginRespDTO login(UserLoginReqDTO requestParam, ServletRequest request);
 
     /**
      * 检查用户是否登录

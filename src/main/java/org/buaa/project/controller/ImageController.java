@@ -1,9 +1,11 @@
 package org.buaa.project.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.buaa.project.common.convention.result.Result;
 import org.buaa.project.common.convention.result.Results;
 import org.buaa.project.service.ImageService;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,6 +26,16 @@ public class ImageController {
     @PostMapping("/oss/upload")
     public Result<String> ossUploadImage(@RequestParam("file") MultipartFile file) {
         return Results.success(imageService.ossUploadImage(file));
+    }
+
+    /**
+     * 生成验证码用于显示，并把结果存入session中.
+     *
+     * @param response the response
+     */
+    @GetMapping("/api/answerly/v1/user/captcha")
+    public void getCaptcha(HttpServletResponse response) {
+        imageService.getCaptcha(response);
     }
 
 }
