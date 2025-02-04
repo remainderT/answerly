@@ -23,7 +23,6 @@ import org.buaa.project.mq.MqProducer;
 import org.buaa.project.service.LikeService;
 import org.buaa.project.service.QuestionService;
 import org.buaa.project.toolkit.CustomIdGenerator;
-import org.buaa.project.toolkit.SensitiveFilter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -40,8 +39,6 @@ import static org.buaa.project.common.enums.QAErrorCodeEnum.QUESTION_NULL;
 @RequiredArgsConstructor
 public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO> implements QuestionService {
 
-    private final SensitiveFilter sensitiveFilter;
-
     private final LikeService likeService;
 
     private final MqProducer producer;
@@ -49,7 +46,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
     @Override
     public void uploadQuestion(QuestionUploadReqDTO requestParam) {
         QuestionDO question = BeanUtil.toBean(requestParam, QuestionDO.class);
-        question = checkSensitiveWords(question);
         question.setUserId(Long.valueOf(UserContext.getUserId()));
         question.setUsername(UserContext.getUsername());
         question.setId(CustomIdGenerator.getId());
@@ -66,7 +62,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
                 .eq(QuestionDO::getId, requestParam.getId());
         QuestionDO questionDO = baseMapper.selectOne(queryWrapper);
         BeanUtils.copyProperties(requestParam, questionDO);
-        questionDO = checkSensitiveWords(questionDO);
         baseMapper.update(questionDO, queryWrapper);
     }
 
@@ -184,13 +179,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         if (!question.getUserId().equals(userId)) {
             throw new ClientException(QUESTION_ACCESS_CONTROL_ERROR);
         }
-    }
-
-    public QuestionDO checkSensitiveWords(QuestionDO question){
-        //todo 错误过滤？应该发现敏感词后需要通知管理员+审核
-        question.setTitle(sensitiveFilter.filter(question.getTitle()));
-        question.setContent(sensitiveFilter.filter(question.getContent()));
-        return question;
     }
 
 }

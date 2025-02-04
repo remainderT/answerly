@@ -1,10 +1,12 @@
-package org.buaa.project.toolkit;
+package org.buaa.project.toolkit.sensitive.impl;
 
 import cn.hutool.core.util.CharUtil;
 import cn.hutool.core.util.StrUtil;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.buaa.project.toolkit.sensitive.SensitiveService;
 import org.springframework.stereotype.Component;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,9 +14,12 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
-@Slf4j
+/**
+ * 前缀树实现 敏感词过滤
+ */
 @Component
-public class SensitiveFilter {
+@Slf4j
+public class TrieTreeSensitiveServiceImpl implements SensitiveService {
 
     // 替换符
     private static final String REPLACEMENT = "**";
@@ -34,9 +39,13 @@ public class SensitiveFilter {
         } catch (IOException e) {
             log.error("加载敏感词文件失败: " + e.getMessage());
         }
+        log.info("敏感词文件加载完成");
     }
 
-    // 将一个敏感词添加到前缀树中
+    /**
+     * 将一个敏感词添加到前缀树中
+     * @param keyword
+     */
     private void addKeyword(String keyword) {
         TrieNode tempNode = rootNode;
         for (int i = 0; i < keyword.length(); i++) {
@@ -62,7 +71,7 @@ public class SensitiveFilter {
      * @param text 待过滤的文本
      * @return 过滤后的文本
      */
-    public String filter(String text) {
+    public String replace(String text) {
         if (StrUtil.isBlank(text)) {
             return null;
         }

@@ -1,4 +1,4 @@
-package org.buaa.project.serialize;
+package org.buaa.project.toolkit.serialize;
 
 import cn.hutool.core.util.DesensitizedUtil;
 import com.fasterxml.jackson.core.JsonGenerator;

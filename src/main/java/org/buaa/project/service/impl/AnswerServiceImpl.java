@@ -25,7 +25,6 @@ import org.buaa.project.service.AnswerService;
 import org.buaa.project.service.LikeService;
 import org.buaa.project.service.QuestionService;
 import org.buaa.project.toolkit.CustomIdGenerator;
-import org.buaa.project.toolkit.SensitiveFilter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -48,8 +47,6 @@ public class AnswerServiceImpl extends ServiceImpl<AnswerMapper, AnswerDO> imple
 
     private final StringRedisTemplate stringRedisTemplate;
 
-    private final SensitiveFilter sensitiveFilter;
-
     private final LikeService likeService;
 
     @Override
@@ -67,7 +64,6 @@ public class AnswerServiceImpl extends ServiceImpl<AnswerMapper, AnswerDO> imple
         answerDO.setUserId(userId);
         answerDO.setUsername(UserContext.getUsername());
         answerDO.setId(CustomIdGenerator.getId());
-        answerDO = checkSensitiveWords(answerDO);
         baseMapper.insert(answerDO);
     }
 
@@ -103,9 +99,9 @@ public class AnswerServiceImpl extends ServiceImpl<AnswerMapper, AnswerDO> imple
                 .eq(AnswerDO::getId, requestParam.getId());
         AnswerDO answerDO = baseMapper.selectOne(queryWrapper);
         BeanUtils.copyProperties(requestParam, answerDO);
-        answerDO = checkSensitiveWords(answerDO);
         baseMapper.update(answerDO, queryWrapper);
     }
+
     @Override
     public IPage<AnswerPageRespDTO> pageMyAnswer(AnswerMinePageReqDTO requestParam){
         LambdaQueryWrapper<AnswerDO> queryWrapper = Wrappers.lambdaQuery(AnswerDO.class)
@@ -180,9 +176,5 @@ public class AnswerServiceImpl extends ServiceImpl<AnswerMapper, AnswerDO> imple
         }
     }
 
-    public AnswerDO checkSensitiveWords(AnswerDO answer){
-        answer.setContent(sensitiveFilter.filter(answer.getContent()));
-        return answer;
-    }
 
 }

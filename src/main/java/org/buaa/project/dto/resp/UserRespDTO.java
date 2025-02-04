@@ -2,7 +2,7 @@ package org.buaa.project.dto.resp;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
-import org.buaa.project.serialize.PhoneDesensitizationSerializer;
+import org.buaa.project.toolkit.serialize.PhoneDesensitizationSerializer;
 
 /**
  * 用户返回参数响应
