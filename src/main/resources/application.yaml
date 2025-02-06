@@ -13,6 +13,10 @@ spring:
       idle-timeout: 300000
       maximum-pool-size: 5
       minimum-idle: 5
+
+  application:
+    name: answerly
+
   data:
     redis:
       host: 127.0.0.1
@@ -45,3 +49,14 @@ flow-limit:
   enable: true
   time-window: 1
   max-access-count: 2
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    metrics:
+      enabled: true
+    health:
+      show-details: always

@@ -1,0 +1,10 @@
+global:
+  scrape_interval:     10s
+  evaluation_interval: 10s
+scrape_configs:
+  # 可随意指定
+  - job_name: 'answerly'
+    # 采集的路径
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['192.168.1.100:80']
