@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.buaa.project.common.biz.user.UserContext;
@@ -13,6 +14,8 @@ import org.buaa.project.common.convention.exception.ClientException;
 import org.buaa.project.common.enums.EntityTypeEnum;
 import org.buaa.project.dao.entity.QuestionDO;
 import org.buaa.project.dao.mapper.QuestionMapper;
+import org.buaa.project.dao.mapper.UserActionMapper;
+import org.buaa.project.dto.req.QuestionCollectPageReqDTO;
 import org.buaa.project.dto.req.QuestionMinePageReqDTO;
 import org.buaa.project.dto.req.QuestionPageReqDTO;
 import org.buaa.project.dto.req.QuestionUpdateReqDTO;
@@ -43,10 +46,12 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
 
     private final MqProducer producer;
 
+    private final UserActionMapper userActionMapper;
+
     @Override
     public void uploadQuestion(QuestionUploadReqDTO requestParam) {
         QuestionDO question = BeanUtil.toBean(requestParam, QuestionDO.class);
-        question.setUserId(Long.valueOf(UserContext.getUserId()));
+        question.setUserId(UserContext.getUserId());
         question.setUsername(UserContext.getUsername());
         question.setId(CustomIdGenerator.getId());
         baseMapper.insert(question);
@@ -101,9 +106,13 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         QuestionRespDTO result = new QuestionRespDTO();
         BeanUtils.copyProperties(question, result);
         int likeCount = likeService.findEntityLikeCount(EntityTypeEnum.QUESTION, id);
-        String likeStatus = UserContext.getUsername() == null ? "未登录" : likeService.findEntityLikeStatus(UserContext.getUserId(), EntityTypeEnum.QUESTION, id);
+        Long userId = UserContext.getUserId();
+        String likeStatus = UserContext.getUsername() == null ? "未登录" : likeService.findEntityLikeStatus(userId, EntityTypeEnum.QUESTION, id);
         result.setLikeCount(likeCount);
         result.setLikeStatus(likeStatus);
+
+        // 更新用户最后一次浏览时间
+        userActionMapper.updateLastViewTime(userId, id);
         return result;
     }
 
@@ -164,6 +173,20 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
                     return dto;
                 })
                 .toList();
+    }
+
+    @Override
+    public void collectQuestion(Long id, int isCollect) {
+        checkQuestionExist(id);
+        Long userId = UserContext.getUserId();
+        userActionMapper.collectQuestion(id, userId, isCollect);
+    }
+
+    @Override
+    public IPage<QuestionPageRespDTO> pageCollectQuestion(QuestionCollectPageReqDTO requestParam) {
+        Long userId = UserContext.getUserId();
+        Page<QuestionPageRespDTO> page = new Page<>(requestParam.getCurrent(), requestParam.getSize());
+        return userActionMapper.pageCollectQuestion(page, userId, requestParam);
     }
 
     public void checkQuestionExist(Long id) {

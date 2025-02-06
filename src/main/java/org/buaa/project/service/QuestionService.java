@@ -3,6 +3,7 @@ package org.buaa.project.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.buaa.project.dao.entity.QuestionDO;
+import org.buaa.project.dto.req.QuestionCollectPageReqDTO;
 import org.buaa.project.dto.req.QuestionMinePageReqDTO;
 import org.buaa.project.dto.req.QuestionPageReqDTO;
 import org.buaa.project.dto.req.QuestionUpdateReqDTO;
@@ -16,7 +17,6 @@ import java.util.List;
  * 问题接口层
  */
 public interface QuestionService extends IService<QuestionDO> {
-
 
     /**
      * 上传题目
@@ -93,10 +93,20 @@ public interface QuestionService extends IService<QuestionDO> {
     void checkQuestionOwner(Long id);
 
     /**
-     * 查看当前用户发布的所有问题
+     * 分页查询我的题目
      * @param requestParam
      * @return
      */
     IPage<QuestionPageRespDTO> pageMyQuestion(QuestionMinePageReqDTO requestParam);
+
+    /**
+     * 收藏问题
+     */
+    void collectQuestion(Long id, int isCollect);
+
+    /**
+     * 分页查询我收藏的题目
+     */
+    IPage<QuestionPageRespDTO> pageCollectQuestion(QuestionCollectPageReqDTO requestParam);
 
 }

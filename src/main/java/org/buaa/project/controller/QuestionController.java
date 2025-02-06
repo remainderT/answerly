@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.RequiredArgsConstructor;
 import org.buaa.project.common.convention.result.Result;
 import org.buaa.project.common.convention.result.Results;
+import org.buaa.project.dto.req.QuestionCollectPageReqDTO;
 import org.buaa.project.dto.req.QuestionMinePageReqDTO;
 import org.buaa.project.dto.req.QuestionPageReqDTO;
 import org.buaa.project.dto.req.QuestionUpdateReqDTO;
@@ -108,6 +109,25 @@ public class QuestionController {
     @GetMapping("/api/answerly/v1/question/my")
     public Result<IPage<QuestionPageRespDTO>> findMyQuestion(QuestionMinePageReqDTO requestParam) {
         return Results.success(questionService.pageMyQuestion(requestParam));
+    }
+
+    /**
+     * 收藏题目
+     * @param Id  问题id
+     * @param isCollect 是否收藏
+     */
+    @PostMapping("/api/answerly/v1/question/collect")
+    public Result<Void> collectQuestion(@RequestParam("id") Long Id, @RequestParam("isCollect") int isCollect) {
+        questionService.collectQuestion(Id, isCollect);
+        return Results.success();
+    }
+
+    /**
+     * 分页查询我收藏的题目
+     */
+    @GetMapping("/api/answerly/v1/question/collect/my")
+    public Result<IPage<QuestionPageRespDTO>> findCollectQuestion(QuestionCollectPageReqDTO requestParam) {
+        return Results.success(questionService.pageCollectQuestion(requestParam));
     }
 }
 
