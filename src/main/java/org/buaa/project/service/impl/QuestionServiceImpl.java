@@ -20,6 +20,7 @@ import org.buaa.project.dto.req.QuestionCollectReqDTO;
 import org.buaa.project.dto.req.QuestionLikeReqDTO;
 import org.buaa.project.dto.req.QuestionMinePageReqDTO;
 import org.buaa.project.dto.req.QuestionPageReqDTO;
+import org.buaa.project.dto.req.QuestionRecentPageReqDTO;
 import org.buaa.project.dto.req.QuestionUpdateReqDTO;
 import org.buaa.project.dto.req.QuestionUploadReqDTO;
 import org.buaa.project.dto.resp.QuestionPageRespDTO;
@@ -189,6 +190,13 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         Long userId = UserContext.getUserId();
         Page<QuestionPageRespDTO> page = new Page<>(requestParam.getCurrent(), requestParam.getSize());
         return userActionMapper.pageCollectQuestion(page, userId, requestParam);
+    }
+
+    @Override
+    public IPage<QuestionPageRespDTO> pageRecentViewQuestion(QuestionRecentPageReqDTO requestParam) {
+        Long userId = UserContext.getUserId();
+        Page<QuestionPageRespDTO> page = new Page<>(requestParam.getCurrent(), requestParam.getSize());
+        return userActionMapper.pageRecentViewQuestion(page, userId, requestParam);
     }
 
     public void checkQuestionExist(Long id) {

@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 import org.buaa.project.dao.entity.UserActionDO;
 import org.buaa.project.dto.req.QuestionCollectPageReqDTO;
+import org.buaa.project.dto.req.QuestionRecentPageReqDTO;
 import org.buaa.project.dto.resp.QuestionPageRespDTO;
 
 /**
@@ -50,4 +51,20 @@ public interface UserActionMapper extends BaseMapper<UserActionDO> {
     IPage<QuestionPageRespDTO> pageCollectQuestion(Page<?> page,
                                                    @Param("userId") Long userId,
                                                    @Param("requestParam") QuestionCollectPageReqDTO requestParam);
+
+
+    /**
+     * 分页查询最近浏览的问题
+     */
+    @Select("SELECT q.id, q.category_id, q.title, q.content, q.user_id, q.username, q.images, " +
+            "q.view_count, q.like_count, q.comment_count, q.solved_flag, q.create_time, q.update_time " +
+            "FROM user_action ua " +
+            "JOIN question q ON ua.question_id = q.id " +
+            "WHERE ua.user_id = #{userId} " +
+            "AND ua.del_flag = 0 " +
+            "AND q.del_flag = 0 " +
+            "ORDER BY ua.last_view_time DESC")
+    IPage<QuestionPageRespDTO> pageRecentViewQuestion(Page<?> page,
+                                                      @Param("userId") Long userId,
+                                                      @Param("requestParam") QuestionRecentPageReqDTO requestParam);
 }

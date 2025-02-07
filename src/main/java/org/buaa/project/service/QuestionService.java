@@ -8,6 +8,7 @@ import org.buaa.project.dto.req.QuestionCollectReqDTO;
 import org.buaa.project.dto.req.QuestionLikeReqDTO;
 import org.buaa.project.dto.req.QuestionMinePageReqDTO;
 import org.buaa.project.dto.req.QuestionPageReqDTO;
+import org.buaa.project.dto.req.QuestionRecentPageReqDTO;
 import org.buaa.project.dto.req.QuestionUpdateReqDTO;
 import org.buaa.project.dto.req.QuestionUploadReqDTO;
 import org.buaa.project.dto.resp.QuestionPageRespDTO;
@@ -87,5 +88,10 @@ public interface QuestionService extends IService<QuestionDO> {
      * 分页查询我收藏的题目
      */
     IPage<QuestionPageRespDTO> pageCollectQuestion(QuestionCollectPageReqDTO requestParam);
+
+    /**
+     * 分页查询最近浏览的题目
+     */
+    IPage<QuestionPageRespDTO> pageRecentViewQuestion(QuestionRecentPageReqDTO requestParam);
 
 }

@@ -6,6 +6,7 @@ import org.buaa.project.common.convention.result.Result;
 import org.buaa.project.common.convention.result.Results;
 import org.buaa.project.dto.req.QuestionCollectPageReqDTO;
 import org.buaa.project.dto.req.QuestionCollectReqDTO;
+import org.buaa.project.dto.req.QuestionRecentPageReqDTO;
 import org.buaa.project.dto.req.QuestionLikeReqDTO;
 import org.buaa.project.dto.req.QuestionMinePageReqDTO;
 import org.buaa.project.dto.req.QuestionPageReqDTO;
@@ -126,6 +127,14 @@ public class QuestionController {
     @GetMapping("/api/answerly/v1/question/collect/my")
     public Result<IPage<QuestionPageRespDTO>> findCollectQuestion(QuestionCollectPageReqDTO requestParam) {
         return Results.success(questionService.pageCollectQuestion(requestParam));
+    }
+
+    /**
+     * 分页查询最近浏览的题目
+     */
+    @GetMapping("/api/answerly/v1/question/recent")
+    public Result<IPage<QuestionPageRespDTO>> findHistoryQuestion(QuestionRecentPageReqDTO requestParam) {
+        return Results.success(questionService.pageRecentViewQuestion(requestParam));
     }
 }
 
