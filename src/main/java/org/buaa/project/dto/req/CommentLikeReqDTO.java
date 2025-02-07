@@ -3,18 +3,18 @@ package org.buaa.project.dto.req;
 import lombok.Data;
 
 /**
- * 回答点赞请求参数
+ * 评论点赞请求参数
  */
 @Data
-public class AnswerLikeReqDTO {
+public class CommentLikeReqDTO {
 
     /**
-     * 回答id
+     * 评论id
      */
     private Long id;
 
     /**
-     * 回答拥有者id
+     * 评论拥有者id
      */
     private Long entityUserId;
 }

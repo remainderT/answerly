@@ -53,10 +53,10 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
 
     public void consume(MqEvent event) {
         switch (event.getMessageType()) {
-            case System:
+            case SYSTEM:
 
                 break;
-            case Like:
+            case LIKE:
                 if (!Objects.equals(event.getUserId(), event.getEntityUserId())) {   // 自己给自己点赞不发消息
                     MessageDO messageDO = MessageDO.builder()
                             .fromId(event.getUserId())
@@ -66,7 +66,7 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
                     messageService.save(messageDO);
                 }
                 break;
-            case ANSWER:
+            case COMMENT:
 
                 break;
             default:

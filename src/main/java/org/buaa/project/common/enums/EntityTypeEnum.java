@@ -7,7 +7,7 @@ public enum EntityTypeEnum {
 
     QUESTION("question"),
 
-    ANSWER("answer"),
+    COMMENT("comment"),
 
     USER("user");
 

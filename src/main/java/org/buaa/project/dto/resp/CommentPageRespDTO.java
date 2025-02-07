@@ -3,12 +3,13 @@ package org.buaa.project.dto.resp;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 
 /**
- * 回答分页查询响应
+ * 评论分页查询响应
  */
 @Data
-public class AnswerPageRespDTO {
+public class CommentPageRespDTO {
 
     /**
      * id
@@ -19,6 +20,16 @@ public class AnswerPageRespDTO {
      * 内容
      */
     private String content;
+
+    /**
+     * 父评论 id
+     */
+    private Long parentCommentId;
+
+    /**
+     * 顶级评论 id
+     */
+    private Long topCommentId;
 
     /**
      * 图片
@@ -34,6 +45,11 @@ public class AnswerPageRespDTO {
      * 头像
      */
     private String avatar;
+
+    /**
+     * parentCommentId 所属者姓名
+     */
+    private String commentTo;
 
     /**
      * 点赞数
@@ -56,12 +72,7 @@ public class AnswerPageRespDTO {
     private Date createTime;
 
     /**
-     * 问题id
+     * 子评论
      */
-    private Long questionId;
-
-    /**
-     * 问题标题
-     */
-    private String title;
+    private List<CommentPageRespDTO> childComments;
 }

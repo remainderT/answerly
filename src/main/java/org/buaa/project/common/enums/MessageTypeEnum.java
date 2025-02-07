@@ -5,11 +5,11 @@ package org.buaa.project.common.enums;
  */
 public enum MessageTypeEnum {
 
-    System("system"),
+    SYSTEM("system"),
 
-    Like("like"),
+    LIKE("like"),
 
-    ANSWER("answer");
+    COMMENT("comment");
 
     private final String type;
 

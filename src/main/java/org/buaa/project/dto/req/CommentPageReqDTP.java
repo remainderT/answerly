@@ -2,13 +2,13 @@ package org.buaa.project.dto.req;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.Data;
-import org.buaa.project.dao.entity.AnswerDO;
+import org.buaa.project.dao.entity.CommentDO;
 
 /**
- * 回答分页查询请求
+ * 评论分页查询请求
  */
 @Data
-public class AnswerPageReqDTP extends Page<AnswerDO> {
+public class CommentPageReqDTP extends Page<CommentDO> {
 
     /**
      * 问题id

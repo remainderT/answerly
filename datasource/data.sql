@@ -89,13 +89,15 @@ CREATE TABLE `user_action` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户行为';
 
 
-DROP TABLE IF EXISTS `answer`;
-CREATE TABLE `answer` (
+DROP TABLE IF EXISTS `comment`;
+CREATE TABLE `comment` (
                           `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
                           `user_id` bigint(20)       NOT NULL COMMENT '发布人ID',
                           `username` varchar(256)    NOT NULL COMMENT '用户名',
                           `question_id` bigint(20)   NOT NULL COMMENT '问题ID',
                           `content` varchar(2048)    DEFAULT NULL COMMENT '内容',
+                          `top_comment_id` bigint(20) NOT NULL DEFAULT '0' COMMENT '顶级评论ID',
+                          `parent_comment_id` bigint(20) NOT NULL DEFAULT '0' COMMENT '父评论ID',
                           `images` varchar(600)      DEFAULT NULL COMMENT '照片路径，最多10张，多张以","隔开',
                           `like_count` int(11)       DEFAULT 0 COMMENT '点赞数',
                           `useful` tinyint(1)        DEFAULT 0 COMMENT '是否有用',

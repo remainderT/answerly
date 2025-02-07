@@ -6,8 +6,8 @@ import org.buaa.project.common.database.BaseDO;
 import org.buaa.project.toolkit.sensitive.SensitiveField;
 
 @Data
-@TableName("answer")
-public class AnswerDO extends BaseDO {
+@TableName("comment")
+public class CommentDO extends BaseDO {
     /**
      * ID - unique identifier for each answer
      */
@@ -27,6 +27,16 @@ public class AnswerDO extends BaseDO {
      * question_id - the ID of the question this answer responds to
      */
     private Long questionId;
+
+    /**
+     * top_comment_id - the ID of the top comment, if this answer is a reply to a comment
+     */
+    private Long topCommentId;
+
+    /**
+     *  parent_comment_id - the ID of the parent comment, if this answer is a reply to a comment
+     */
+    private Long parentCommentId;
 
     /**
      * content - the content of the answer, with a maximum length of 1024 characters

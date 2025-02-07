@@ -34,8 +34,6 @@ public interface QuestionService extends IService<QuestionDO> {
 
     /**
      * 删除题目
-     *
-     * @param id
      */
     void deleteQuestion(Long id);
 

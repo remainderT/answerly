@@ -11,9 +11,9 @@ public enum QAErrorCodeEnum implements IErrorCode {
 
     QUESTION_ACCESS_CONTROL_ERROR("C000102", "问题操作权限错误"),
 
-    ANSWER_NULL("C000103", "回答不存在"),
+    COMMENT_NULL("C000103", "评论不存在"),
 
-    ANSWER_ACCESS_CONTROL_ERROR("C000104", "回答操作权限错误"),
+    COMMENT_ACCESS_CONTROL_ERROR("C000104", "评论操作权限错误"),
 
     CATEGORY_ACCESS_CONTROL_ERROR("C000105", "主题操作权限错误");
 

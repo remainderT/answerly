@@ -34,7 +34,7 @@ public class LikeServiceImpl implements LikeService {
             stringRedisTemplate.opsForSet().add(entityLikeKey, String.valueOf(userId));
             stringRedisTemplate.opsForValue().increment(userLikeKey);
             MqEvent event = MqEvent.builder()
-                    .messageType(MessageTypeEnum.Like)
+                    .messageType(MessageTypeEnum.LIKE)
                     .entityType(entityType)
                     .userId(userId)
                     .entityId(entityId)
