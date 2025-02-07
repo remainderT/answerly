@@ -16,6 +16,7 @@ import org.buaa.project.dao.entity.AnswerDO;
 import org.buaa.project.dao.entity.QuestionDO;
 import org.buaa.project.dao.entity.UserDO;
 import org.buaa.project.dao.mapper.AnswerMapper;
+import org.buaa.project.dto.req.AnswerLikeReqDTO;
 import org.buaa.project.dto.req.AnswerMinePageReqDTO;
 import org.buaa.project.dto.req.AnswerPageReqDTP;
 import org.buaa.project.dto.req.AnswerUpdateReqDTO;
@@ -50,17 +51,17 @@ public class AnswerServiceImpl extends ServiceImpl<AnswerMapper, AnswerDO> imple
     private final LikeService likeService;
 
     @Override
-    public void likeAnswer(long id, long entityUserId){
-        checkAnswerExist(id);
+    public void likeAnswer(AnswerLikeReqDTO requestParam) {
+        checkAnswerExist(requestParam.getId());
 
         long userId = UserContext.getUserId();
-        likeService.like(userId, EntityTypeEnum.ANSWER, id, entityUserId);
+        likeService.like(userId, EntityTypeEnum.ANSWER, requestParam.getId(), requestParam.getEntityUserId());
     }
 
     @Override
-    public void uploadAnswer(AnswerUploadReqDTO reqDTO){
+    public void uploadAnswer(AnswerUploadReqDTO requestParam){
         long userId = UserContext.getUserId();
-        AnswerDO answerDO = BeanUtil.copyProperties(reqDTO, AnswerDO.class);
+        AnswerDO answerDO = BeanUtil.copyProperties(requestParam, AnswerDO.class);
         answerDO.setUserId(userId);
         answerDO.setUsername(UserContext.getUsername());
         answerDO.setId(CustomIdGenerator.getId());
@@ -68,7 +69,7 @@ public class AnswerServiceImpl extends ServiceImpl<AnswerMapper, AnswerDO> imple
     }
 
     @Override
-    public void deleteAnswer(long id){
+    public void deleteAnswer(Long id){
         checkAnswerExist(id);
         if(!UserContext.getUserType().equals("admin")){
             checkAnswerOwner(id);
@@ -80,7 +81,7 @@ public class AnswerServiceImpl extends ServiceImpl<AnswerMapper, AnswerDO> imple
     }
 
     @Override
-    public void markUsefulAnswer(long id){
+    public void markUsefulAnswer(Long id){
         checkAnswerExist(id);
 
         AnswerDO answerDO = baseMapper.selectById(id);
@@ -160,7 +161,7 @@ public class AnswerServiceImpl extends ServiceImpl<AnswerMapper, AnswerDO> imple
     }
 
     @Override
-    public void checkAnswerExist(long id) {
+    public void checkAnswerExist(Long id) {
         AnswerDO answer = baseMapper.selectById(id);
         if (answer == null || answer.getDelFlag() != 0) {
             throw new ClientException(ANSWER_NULL);
@@ -168,7 +169,7 @@ public class AnswerServiceImpl extends ServiceImpl<AnswerMapper, AnswerDO> imple
     }
 
     @Override
-    public void checkAnswerOwner(long id) {
+    public void checkAnswerOwner(Long id) {
         AnswerDO answer = baseMapper.selectById(id);
         long userId = UserContext.getUserId();
         if (!answer.getUserId().equals(userId)) {

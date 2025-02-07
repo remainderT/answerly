@@ -15,7 +15,6 @@ public interface ImageService {
 
     /**
      * 生成验证码用于显示，并把结果存入session中.
-     *
      */
     void getCaptcha(HttpServletResponse response);
 

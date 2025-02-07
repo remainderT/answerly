@@ -58,7 +58,7 @@ public class QuestionRespDTO {
     /**
      * 是否解决 0：未解决 1：已解决
      */
-    private int solvedFlag;
+    private Integer solvedFlag;
 
     /**
      * 创建时间

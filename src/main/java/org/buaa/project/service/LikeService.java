@@ -9,33 +9,21 @@ public interface LikeService {
 
     /**
      * 点赞
-     * @param userId
-     * @param entityType
-     * @param entityId
      */
-    void like(long userId, EntityTypeEnum entityType, long entityId, long entityUserId);
+    void like(Long userId, EntityTypeEnum entityType, Long entityId, Long entityUserId);
 
     /**
      * 查询实体点赞数量
-     * @param entityType
-     * @param entityId
-     * @return
      */
-    int findEntityLikeCount(EntityTypeEnum entityType, long entityId);
+    int findEntityLikeCount(EntityTypeEnum entityType, Long entityId);
 
     /**
      * 查询实体点赞状态
-     * @param userId
-     * @param entityType
-     * @param entityId
-     * @return
      */
-    String findEntityLikeStatus(long userId, EntityTypeEnum entityType, long entityId);
+    String findEntityLikeStatus(Long userId, EntityTypeEnum entityType, Long entityId);
 
     /**
      * 查询用户点赞数量
-     * @param userId
-     * @return
      */
-    int findUserLikeCount(long userId);
+    int findUserLikeCount(Long userId);
 }

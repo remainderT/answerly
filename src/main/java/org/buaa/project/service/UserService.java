@@ -16,17 +16,11 @@ public interface UserService extends IService<UserDO> {
 
     /**
      * 根据用户名查询用户信息
-     *
-     * @param username
-     * @return 用户返回实体
      */
     UserRespDTO getUserByUsername(String username);
 
     /**
      * 查询用户名是否存在
-     *
-     * @param username
-     * @return
      */
     Boolean hasUsername(String username);
 
@@ -39,16 +33,11 @@ public interface UserService extends IService<UserDO> {
 
     /**
      * 注册用户
-     *
-     * @param requestParam 注册用户请求参数
      */
     void register(UserRegisterReqDTO requestParam);
 
     /**
      * 用户登录
-     *
-     * @param requestParam 用户登录请求参数
-     * @return 用户登录返回参数 Token
      */
     UserLoginRespDTO login(UserLoginReqDTO requestParam, ServletRequest request);
 
@@ -70,8 +59,6 @@ public interface UserService extends IService<UserDO> {
 
     /**
      * 更新用户信息
-     *
-     * @param requestParam 更新用户信息请求参数
      */
     void update(UserUpdateReqDTO requestParam);
 

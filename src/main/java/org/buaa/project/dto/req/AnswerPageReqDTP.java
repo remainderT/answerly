@@ -13,6 +13,6 @@ public class AnswerPageReqDTP extends Page<AnswerDO> {
     /**
      * 问题id
      */
-    private Long Id;
+    private Long id;
 
 }

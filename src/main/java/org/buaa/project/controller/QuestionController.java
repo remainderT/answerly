@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.buaa.project.common.convention.result.Result;
 import org.buaa.project.common.convention.result.Results;
 import org.buaa.project.dto.req.QuestionCollectPageReqDTO;
+import org.buaa.project.dto.req.QuestionCollectReqDTO;
+import org.buaa.project.dto.req.QuestionLikeReqDTO;
 import org.buaa.project.dto.req.QuestionMinePageReqDTO;
 import org.buaa.project.dto.req.QuestionPageReqDTO;
 import org.buaa.project.dto.req.QuestionUpdateReqDTO;
@@ -36,8 +38,8 @@ public class QuestionController {
      * 上传题目
      */
     @PostMapping("/api/answerly/v1/question")
-    public Result<Void> uploadQuestion(@RequestBody QuestionUploadReqDTO questionUploadReqDTO) {
-        questionService.uploadQuestion(questionUploadReqDTO);
+    public Result<Void> uploadQuestion(@RequestBody QuestionUploadReqDTO requestParam) {
+        questionService.uploadQuestion(requestParam);
         return Results.success();
     }
 
@@ -45,8 +47,8 @@ public class QuestionController {
      * 修改题目
      */
     @PutMapping("/api/answerly/v1/question")
-    public Result<Void> updateQuestion(@RequestBody QuestionUpdateReqDTO questionUpdateReqDTO) {
-        questionService.updateQuestion(questionUpdateReqDTO);
+    public Result<Void> updateQuestion(@RequestBody QuestionUpdateReqDTO requestParam) {
+        questionService.updateQuestion(requestParam);
         return Results.success();
     }
 
@@ -63,8 +65,8 @@ public class QuestionController {
      * 点赞题目
      */
     @PostMapping("/api/answerly/v1/question/like")
-    public Result<Void> likeQuestion(@RequestParam("id") Long Id, @RequestParam("userId") Long entityUserId) {
-        questionService.likeQuestion(Id, entityUserId);
+    public Result<Void> likeQuestion(@RequestBody QuestionLikeReqDTO requestParam) {
+        questionService.likeQuestion(requestParam);
         return Results.success();
     }
 
@@ -103,8 +105,6 @@ public class QuestionController {
 
     /**
      * 分页查询我的题目
-     * @param requestParam
-     * @return
      */
     @GetMapping("/api/answerly/v1/question/my")
     public Result<IPage<QuestionPageRespDTO>> findMyQuestion(QuestionMinePageReqDTO requestParam) {
@@ -113,12 +113,10 @@ public class QuestionController {
 
     /**
      * 收藏题目
-     * @param Id  问题id
-     * @param isCollect 是否收藏
      */
     @PostMapping("/api/answerly/v1/question/collect")
-    public Result<Void> collectQuestion(@RequestParam("id") Long Id, @RequestParam("isCollect") int isCollect) {
-        questionService.collectQuestion(Id, isCollect);
+    public Result<Void> collectQuestion(@RequestBody QuestionCollectReqDTO requestParam) {
+        questionService.collectQuestion(requestParam);
         return Results.success();
     }
 

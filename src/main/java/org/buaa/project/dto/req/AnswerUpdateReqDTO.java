@@ -2,6 +2,9 @@ package org.buaa.project.dto.req;
 
 import lombok.Data;
 
+/**
+ * 回答更新请求参数
+ */
 @Data
 public class AnswerUpdateReqDTO {
 

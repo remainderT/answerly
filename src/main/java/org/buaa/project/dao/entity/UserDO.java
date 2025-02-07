@@ -70,6 +70,6 @@ public class UserDO extends BaseDO {
     /**
      * 状态
      */
-    private int status;
+    private Integer status;
 
 }

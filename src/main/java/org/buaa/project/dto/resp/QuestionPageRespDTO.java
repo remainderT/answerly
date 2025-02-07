@@ -24,8 +24,23 @@ public class QuestionPageRespDTO {
     private String content;
 
     /**
+     * 浏览量
+     */
+    private Integer viewCount;
+
+    /**
+     * 点赞数
+     */
+    private Integer likeCount;
+
+    /**
+     * 评论数
+     */
+    private Integer commentCount;
+
+    /**
      * 是否解决 0：未解决 1：已解决
      */
-    private int solvedFlag;
+    private Integer solvedFlag;
 
 }

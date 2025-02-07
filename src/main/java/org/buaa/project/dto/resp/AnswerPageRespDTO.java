@@ -38,7 +38,7 @@ public class AnswerPageRespDTO {
     /**
      * 点赞数
      */
-    private int likeCount;
+    private Integer likeCount;
 
     /**
      * 点赞状态
@@ -48,7 +48,7 @@ public class AnswerPageRespDTO {
     /**
      * 是否被采纳 0：未采纳 1：已采纳
      */
-    private int useful;
+    private Integer useful;
 
     /**
      * 创建时间

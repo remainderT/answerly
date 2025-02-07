@@ -37,17 +37,17 @@ public class UserActionDO extends BaseDO {
     /**
      * 是否收藏
      */
-    private int collectStat;
+    private Integer collectStat;
 
     /**
      * 是否点赞
      */
-    private int likeStat;
+    private Integer likeStat;
 
     /**
      * 是否评论
      */
-    private int commentStat;
+    private Integer commentStat;
 
     /**
      * 上次浏览时间

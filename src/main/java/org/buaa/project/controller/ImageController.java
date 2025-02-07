@@ -30,8 +30,6 @@ public class ImageController {
 
     /**
      * 生成验证码用于显示，并把结果存入session中.
-     *
-     * @param response the response
      */
     @GetMapping("/api/answerly/v1/user/captcha")
     public void getCaptcha(HttpServletResponse response) {

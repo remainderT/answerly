@@ -47,5 +47,5 @@ public class AnswerDO extends BaseDO {
     /**
      * useful - indicates if the answer is marked as useful, 1 for true, 0 for false
      */
-    private int useful;
+    private Integer useful;
 }

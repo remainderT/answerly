@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.RequiredArgsConstructor;
 import org.buaa.project.common.convention.result.Result;
 import org.buaa.project.common.convention.result.Results;
+import org.buaa.project.dto.req.AnswerLikeReqDTO;
 import org.buaa.project.dto.req.AnswerMinePageReqDTO;
 import org.buaa.project.dto.req.AnswerPageReqDTP;
 import org.buaa.project.dto.req.AnswerUpdateReqDTO;
@@ -29,7 +30,6 @@ public class AnswerController {
 
     /**
      * 上传答案
-     * @param requestParam
      */
     @PostMapping("/api/answerly/v1/answer")
     public Result<Void> uploadAnswer(@RequestBody AnswerUploadReqDTO requestParam) {
@@ -39,7 +39,6 @@ public class AnswerController {
 
     /**
      * 修改答案
-     * @param requestParam
      */
     @PutMapping("/api/answerly/v1/answer")
     public Result<Void> updateAnswer(@RequestBody AnswerUpdateReqDTO requestParam) {
@@ -49,7 +48,6 @@ public class AnswerController {
 
     /**
      * 删除答案
-     * @param Id
      */
     @DeleteMapping("/api/answerly/v1/answer")
     public Result<Void> deleteAnswer(@RequestParam("id") Long Id) {
@@ -59,11 +57,10 @@ public class AnswerController {
 
     /**
      * 点赞答案
-     * @param Id
      */
     @PostMapping("/api/answerly/v1/answer/like")
-    public Result<Void> likeQuestion(@RequestParam("id") Long Id, @RequestParam("userId") Long entityUserId) {
-        answerService.likeAnswer(Id, entityUserId);
+    public Result<Void> likeQuestion(AnswerLikeReqDTO requestParam) {
+        answerService.likeAnswer(requestParam);
         return Results.success();
     }
 
@@ -84,6 +81,9 @@ public class AnswerController {
         return Results.success(answerService.pageAnswer(requestParam));
     }
 
+    /**
+     * 分页查询我的回答
+     */
     @GetMapping("/api/answerly/v1/answer/my")
     public  Result<IPage<AnswerPageRespDTO>> pageMyAnswer(AnswerMinePageReqDTO requestParam) {
         return Results.success(answerService.pageMyAnswer(requestParam));

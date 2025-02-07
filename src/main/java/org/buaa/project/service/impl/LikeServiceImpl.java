@@ -23,7 +23,7 @@ public class LikeServiceImpl implements LikeService {
     private final MqProducer producer;
 
     @Override
-    public void like(long userId, EntityTypeEnum entityType, long entityId, long entityUserId) {
+    public void like(Long userId, EntityTypeEnum entityType, Long entityId, Long entityUserId) {
         String entityLikeKey = String.format(PREFIX_ENTITY_LIKE, entityType, entityId);
         String userLikeKey = String.format(PREFIX_ENTITY_LIKE, EntityTypeEnum.USER, entityUserId);
         boolean isMember = Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(entityLikeKey, String.valueOf(userId)));
@@ -45,20 +45,20 @@ public class LikeServiceImpl implements LikeService {
     }
 
     @Override
-    public int findEntityLikeCount(EntityTypeEnum entityType, long entityId) {
+    public int findEntityLikeCount(EntityTypeEnum entityType, Long entityId) {
         String entityLikeKey = String.format(PREFIX_ENTITY_LIKE, entityType, entityId);
         Long size = stringRedisTemplate.opsForSet().size(entityLikeKey);
         return size != null ? size.intValue() : 0;
     }
 
     @Override
-    public String findEntityLikeStatus(long userId, EntityTypeEnum entityType, long entityId) {
+    public String findEntityLikeStatus(Long userId, EntityTypeEnum entityType, Long entityId) {
         String entityLikeKey = String.format(PREFIX_ENTITY_LIKE, entityType, entityId);
         return Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(entityLikeKey, String.valueOf(userId))) ? "已点赞" : "未点赞";
     }
 
     @Override
-    public int findUserLikeCount(long userId) {
+    public int findUserLikeCount(Long userId) {
         String entityLikeKey = String.format(PREFIX_ENTITY_LIKE, EntityTypeEnum.USER, userId);
         String size = stringRedisTemplate.opsForValue().get(entityLikeKey);
         return size != null ? Integer.parseInt(size) : 0;

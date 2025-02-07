@@ -3,6 +3,7 @@ package org.buaa.project.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.buaa.project.dao.entity.AnswerDO;
+import org.buaa.project.dto.req.AnswerLikeReqDTO;
 import org.buaa.project.dto.req.AnswerMinePageReqDTO;
 import org.buaa.project.dto.req.AnswerPageReqDTP;
 import org.buaa.project.dto.req.AnswerUpdateReqDTO;
@@ -13,57 +14,46 @@ public interface AnswerService extends IService<AnswerDO> {
 
     /**
      * 上传回答
-     * @param reqDTO
      */
-    void uploadAnswer(AnswerUploadReqDTO reqDTO);
+    void uploadAnswer(AnswerUploadReqDTO requestParam);
 
     /**
      * 点赞回答
-     * @param id
      */
-    void likeAnswer(long id, long entityUserId); ;
+    void likeAnswer(AnswerLikeReqDTO requestParam);
 
     /**
      * 删除回答
-     * @param id
      */
-    void deleteAnswer(long id);
+    void deleteAnswer(Long id);
 
     /**
      * 标记回答有用
-     * @param id
      */
-    void markUsefulAnswer(long id);
+    void markUsefulAnswer(Long id);
 
     /**
      * 更新回答
-     * @param reqDTO
      */
-    void updateAnswer(AnswerUpdateReqDTO reqDTO);
+    void updateAnswer(AnswerUpdateReqDTO requestParam);
 
     /**
      * 检查回答是否存在
-     * @param id
      */
-    void checkAnswerExist(long id);
+    void checkAnswerExist(Long id);
 
     /**
      * 检查回答所有者
-     * @param id
      */
-    void checkAnswerOwner(long id);
+    void checkAnswerOwner(Long id);
 
     /**
      * 分页查询回答
-     * @param requestParam
-     * @return
      */
     IPage<AnswerPageRespDTO> pageAnswer(AnswerPageReqDTP requestParam);
 
     /**
      * 分页查询我的回答
-     * @param requestParam
-     * @return
      */
     IPage<AnswerPageRespDTO> pageMyAnswer(AnswerMinePageReqDTO requestParam);
 

@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.buaa.project.dao.entity.QuestionDO;
 import org.buaa.project.dto.req.QuestionCollectPageReqDTO;
+import org.buaa.project.dto.req.QuestionCollectReqDTO;
+import org.buaa.project.dto.req.QuestionLikeReqDTO;
 import org.buaa.project.dto.req.QuestionMinePageReqDTO;
 import org.buaa.project.dto.req.QuestionPageReqDTO;
 import org.buaa.project.dto.req.QuestionUpdateReqDTO;
@@ -20,16 +22,12 @@ public interface QuestionService extends IService<QuestionDO> {
 
     /**
      * 上传题目
-     *
-     * @param requestParam
      */
     void uploadQuestion(QuestionUploadReqDTO requestParam);
 
 
     /**
      * 修改题目
-     *
-     * @param requestParam
      */
     void updateQuestion(QuestionUpdateReqDTO requestParam);
 
@@ -42,67 +40,48 @@ public interface QuestionService extends IService<QuestionDO> {
 
     /**
      * 点赞题目
-     *
-     * @param id
      */
-    void likeQuestion(Long id, Long entityUserId);
+    void likeQuestion(QuestionLikeReqDTO requestParam);
 
     /**
      * 标记问题已经解决
-     *
-     * @param id
      */
     void resolvedQuestion(Long id);
 
     /**
      * 查询题目详细信息
-     *
-     * @param id
-     * @return
      */
     QuestionRespDTO findQuestionById(Long id);
 
     /**
      * 分页查询题目
-     *
-     * @param requestParam
-     * @return
      */
     IPage<QuestionPageRespDTO> pageQuestion(QuestionPageReqDTO requestParam);
 
     /**
      * 查询热门题目
-     *
-     * @param category
-     * @return
      */
-    List<QuestionPageRespDTO> findHotQuestion(int category);
+    List<QuestionPageRespDTO> findHotQuestion(Integer category);
 
     /**
      * 检查题目是否存在
-     *
-     * @param id
      */
     void checkQuestionExist(Long id);
 
     /**
      * 检查题目是否为当前用户所有
-     *
-     * @param id
      */
     void checkQuestionOwner(Long id);
 
     /**
      * 分页查询我的题目
-     * @param requestParam
-     * @return
      */
     IPage<QuestionPageRespDTO> pageMyQuestion(QuestionMinePageReqDTO requestParam);
 
     /**
      * 收藏问题
      */
-    void collectQuestion(Long id, int isCollect);
+    void collectQuestion(QuestionCollectReqDTO requestParam);
 
     /**
      * 分页查询我收藏的题目

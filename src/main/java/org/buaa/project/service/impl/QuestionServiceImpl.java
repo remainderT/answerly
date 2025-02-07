@@ -16,6 +16,8 @@ import org.buaa.project.dao.entity.QuestionDO;
 import org.buaa.project.dao.mapper.QuestionMapper;
 import org.buaa.project.dao.mapper.UserActionMapper;
 import org.buaa.project.dto.req.QuestionCollectPageReqDTO;
+import org.buaa.project.dto.req.QuestionCollectReqDTO;
+import org.buaa.project.dto.req.QuestionLikeReqDTO;
 import org.buaa.project.dto.req.QuestionMinePageReqDTO;
 import org.buaa.project.dto.req.QuestionPageReqDTO;
 import org.buaa.project.dto.req.QuestionUpdateReqDTO;
@@ -83,11 +85,11 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
     }
 
     @Override
-    public void likeQuestion(Long id, Long entityUserId) {
-        checkQuestionExist(id);
+    public void likeQuestion(QuestionLikeReqDTO requestParam) {
+        checkQuestionExist(requestParam.getQuestionId());
 
         long userId = UserContext.getUserId();
-        likeService.like(userId, EntityTypeEnum.QUESTION, id, entityUserId);
+        likeService.like(userId, EntityTypeEnum.QUESTION, requestParam.getQuestionId(), requestParam.getEntityUserId());
     }
 
     @Override
@@ -157,7 +159,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
     }
 
     @Override
-    public List<QuestionPageRespDTO> findHotQuestion(int category) {
+    public List<QuestionPageRespDTO> findHotQuestion(Integer category) {
         //todo 修改热度值计算，暂时先根据like_count和view_count排序
         LambdaQueryWrapper<QuestionDO> wrapper = Wrappers.lambdaQuery(QuestionDO.class)
                 .eq(QuestionDO::getCategoryId, category)
@@ -176,10 +178,10 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
     }
 
     @Override
-    public void collectQuestion(Long id, int isCollect) {
-        checkQuestionExist(id);
+    public void collectQuestion(QuestionCollectReqDTO requestParam) {
+        checkQuestionExist(requestParam.getId());
         Long userId = UserContext.getUserId();
-        userActionMapper.collectQuestion(id, userId, isCollect);
+        userActionMapper.collectQuestion(requestParam.getId(), userId, requestParam.getIsCollect());
     }
 
     @Override
