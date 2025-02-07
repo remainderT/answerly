@@ -25,7 +25,6 @@ import org.buaa.project.dto.resp.AnswerPageRespDTO;
 import org.buaa.project.service.AnswerService;
 import org.buaa.project.service.LikeService;
 import org.buaa.project.service.QuestionService;
-import org.buaa.project.toolkit.CustomIdGenerator;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -64,7 +63,6 @@ public class AnswerServiceImpl extends ServiceImpl<AnswerMapper, AnswerDO> imple
         AnswerDO answerDO = BeanUtil.copyProperties(requestParam, AnswerDO.class);
         answerDO.setUserId(userId);
         answerDO.setUsername(UserContext.getUsername());
-        answerDO.setId(CustomIdGenerator.getId());
         baseMapper.insert(answerDO);
     }
 

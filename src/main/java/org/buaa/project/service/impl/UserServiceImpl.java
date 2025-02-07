@@ -26,7 +26,6 @@ import org.buaa.project.dto.resp.UserLoginRespDTO;
 import org.buaa.project.dto.resp.UserRespDTO;
 import org.buaa.project.service.LikeService;
 import org.buaa.project.service.UserService;
-import org.buaa.project.toolkit.CustomIdGenerator;
 import org.buaa.project.toolkit.RandomGenerator;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -137,7 +136,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         }
         try {
             UserDO userDO = BeanUtil.toBean(requestParam, UserDO.class);
-            userDO.setId(CustomIdGenerator.getId());
             userDO.setSalt(UUID.randomUUID().toString().substring(0, 5));
             userDO.setPassword(DigestUtils.md5DigestAsHex((userDO.getPassword() + userDO.getSalt()).getBytes()));
             int inserted = baseMapper.insert(userDO);

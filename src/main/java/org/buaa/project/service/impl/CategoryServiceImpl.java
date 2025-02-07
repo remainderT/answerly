@@ -14,7 +14,6 @@ import org.buaa.project.dto.req.CategoryCreateReqDTO;
 import org.buaa.project.dto.req.CategoryUpdateReqDTO;
 import org.buaa.project.dto.resp.CategoryRespDTO;
 import org.buaa.project.service.CategoryService;
-import org.buaa.project.toolkit.CustomIdGenerator;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,7 +31,6 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, CategoryDO>
     public void addCategory(CategoryCreateReqDTO requestParam) {
         checkIsAdmin();
         CategoryDO categoryDO = BeanUtil.toBean(requestParam, CategoryDO.class);
-        categoryDO.setId(CustomIdGenerator.getId());
         baseMapper.insert(categoryDO);
     }
 

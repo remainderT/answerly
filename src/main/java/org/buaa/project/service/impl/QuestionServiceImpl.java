@@ -28,7 +28,6 @@ import org.buaa.project.dto.resp.QuestionRespDTO;
 import org.buaa.project.mq.MqProducer;
 import org.buaa.project.service.LikeService;
 import org.buaa.project.service.QuestionService;
-import org.buaa.project.toolkit.CustomIdGenerator;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -56,7 +55,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         QuestionDO question = BeanUtil.toBean(requestParam, QuestionDO.class);
         question.setUserId(UserContext.getUserId());
         question.setUsername(UserContext.getUsername());
-        question.setId(CustomIdGenerator.getId());
         baseMapper.insert(question);
     }
 
