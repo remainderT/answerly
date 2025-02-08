@@ -15,6 +15,7 @@ CREATE TABLE `user` (
                         `introduction`  varchar(1024)   DEFAULT NULL COMMENT '个人简介',
                         `like_count`    int(11)         DEFAULT 0 COMMENT '点赞数',
                         `solved_count`  int(11)         DEFAULT 0 COMMENT '解决问题的数量',
+                        `useful_count` int(11)          DEFAULT 0 COMMENT '评论有用数量',
                         `user_type` ENUM('student', 'volunteer','admin') NOT NULL COMMENT '用户类型',
                         `status` tinyint(4)        DEFAULT 0    COMMENT '状态',
                         `create_time` datetime     DEFAULT NULL COMMENT '创建时间',
@@ -25,8 +26,8 @@ CREATE TABLE `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='学生和义工和管理员';
 
 
-INSERT INTO `user` (`username`, `password`, `salt`, `mail`, `avatar`, `phone`, `introduction`, `like_count`, `solved_count`, `user_type`, `status`, `create_time`, `update_time`, `del_flag`)
-VALUES ('admin', 'e62ee014c28a13e75d90df35d04f6faf', '13246','admin@example.com', NULL, NULL, 'Administrator account', 0, 0, 'admin', 1, NOW(), NOW(), 0);
+INSERT INTO `user` (`username`, `password`, `salt`, `mail`, `avatar`, `phone`, `introduction`, `like_count`, `solved_count`, `useful_count`, `user_type`, `status`, `create_time`, `update_time`, `del_flag`)
+VALUES ('admin', 'e62ee014c28a13e75d90df35d04f6faf', '13246','admin@example.com', NULL, NULL, 'Administrator account', 0, 0, 0, 'admin', 1, NOW(), NOW(), 0);
 
 
 
@@ -76,16 +77,18 @@ DROP TABLE IF EXISTS `user_action`;
 CREATE TABLE `user_action` (
                              `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
                              `user_id` bigint(20)  unsigned NOT NULL DEFAULT '0' COMMENT '用户ID',
-                             `question_id` bigint(20)  unsigned NOT NULL DEFAULT '0' COMMENT '问题ID',
+                             `entity_type` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '实体类型: 1-问题，2-评论',
+                             `entity_id` bigint(20)  unsigned NOT NULL DEFAULT '0' COMMENT '问题ID',
                              `collection_stat` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '收藏状态: 0-未收藏，1-已收藏',
                              `like_stat` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '点赞状态: 0-未点赞，1-点赞',
                              `comment_stat` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '评论状态: 0-评论，1-已评论',
+                             `useful_stat` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '有用状态: 0-未有用，1-有用',
                              `last_view_time` datetime     DEFAULT NULL COMMENT '上次浏览时间',
                              `create_time` datetime     DEFAULT NULL COMMENT '创建时间',
                              `update_time` datetime     DEFAULT NULL COMMENT '修改时间',
                              `del_flag`   tinyint(1)    DEFAULT NULL COMMENT '删除标识 0：未删除 1：已删除',
                              PRIMARY KEY (`id`),
-                             UNIQUE KEY `idx_user_question` (`user_id`,`question_id`)
+                             KEY `idx_user_entity_id` (`user_id`, `entity_id`),
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户行为';
 
 
@@ -112,9 +115,9 @@ CREATE TABLE `message` (
                            `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
                            `from_id` bigint(20) NOT NULL COMMENT '发送人ID 1就是系统消息',
                            `to_id` bigint(20) NOT NULL COMMENT '接收者ID',
-                           `type` ENUM('system', 'like', 'answer') NOT NULL COMMENT '消息类型',
+                           `type` ENUM('system', 'like', 'comment', 'collect', 'useful') NOT NULL COMMENT '消息类型',
                            `content` text   DEFAULT NULL COMMENT '内容',
-                           `status` int(11) DEFAULT 0 COMMENT '0-未读;1-已读;2-删除;',
+                           `status` int(11) DEFAULT 0 COMMENT '0-未读;1-已读',
                            `create_time` datetime     DEFAULT NULL COMMENT '创建时间',
                            `update_time` datetime     DEFAULT NULL COMMENT '修改时间',
                            `del_flag`    tinyint(1)   DEFAULT NULL COMMENT '删除标识 0：未删除 1：已删除',

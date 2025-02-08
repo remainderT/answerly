@@ -5,6 +5,8 @@ package org.buaa.project.common.enums;
  */
 public enum EntityTypeEnum {
 
+    SYSTEM("system"),
+
     QUESTION("question"),
 
     COMMENT("comment"),

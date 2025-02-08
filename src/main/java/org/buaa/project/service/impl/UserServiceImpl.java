@@ -16,14 +16,18 @@ import org.buaa.project.common.biz.user.UserContext;
 import org.buaa.project.common.consts.MailSendConstants;
 import org.buaa.project.common.convention.exception.ClientException;
 import org.buaa.project.common.convention.exception.ServiceException;
+import org.buaa.project.common.enums.EntityTypeEnum;
+import org.buaa.project.common.enums.MessageTypeEnum;
 import org.buaa.project.common.enums.UserErrorCodeEnum;
 import org.buaa.project.dao.entity.UserDO;
 import org.buaa.project.dao.mapper.UserMapper;
-import org.buaa.project.dto.req.UserLoginReqDTO;
-import org.buaa.project.dto.req.UserRegisterReqDTO;
-import org.buaa.project.dto.req.UserUpdateReqDTO;
+import org.buaa.project.dto.req.user.UserLoginReqDTO;
+import org.buaa.project.dto.req.user.UserRegisterReqDTO;
+import org.buaa.project.dto.req.user.UserUpdateReqDTO;
 import org.buaa.project.dto.resp.UserLoginRespDTO;
 import org.buaa.project.dto.resp.UserRespDTO;
+import org.buaa.project.mq.MqEvent;
+import org.buaa.project.mq.MqProducer;
 import org.buaa.project.service.LikeService;
 import org.buaa.project.service.UserService;
 import org.buaa.project.toolkit.RandomGenerator;
@@ -39,6 +43,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -75,6 +80,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     private final StringRedisTemplate stringRedisTemplate;
 
     private final LikeService likeService;
+
+    private final MqProducer producer;
 
     @Value("${spring.mail.username}")
     private String from;
@@ -145,6 +152,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             userDO = baseMapper.selectOne(Wrappers.lambdaQuery(UserDO.class)
                     .eq(UserDO::getUsername, requestParam.getUsername()));
             stringRedisTemplate.opsForValue().set(USER_INFO_KEY + requestParam.getUsername(), JSON.toJSONString(userDO));
+            afterRegistry(1L, EntityTypeEnum.USER, 0L, userDO.getId(), 1);
         } catch (DuplicateKeyException ex) {
             throw new ClientException(USER_EXIST);
         } finally {
@@ -246,5 +254,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         stringRedisTemplate.opsForValue().set(USER_INFO_KEY + requestParam.getNewUsername(), JSON.toJSONString(newUserDO));
     }
 
+    public void afterRegistry(Long userId, EntityTypeEnum entityType, Long entityId, Long entityUserId, Integer isPositive) {
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("content", "欢迎注册源智答小程序");
+        MqEvent event = MqEvent.builder()
+                .messageType(MessageTypeEnum.SYSTEM)
+                .entityType(entityType)
+                .userId(userId)
+                .entityId(entityId)
+                .entityUserId(entityUserId)
+                .isPositive(isPositive)
+                .data(data)
+                .build();
+        producer.send(event);
+    }
 
 }

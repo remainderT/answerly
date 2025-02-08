@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import org.buaa.project.common.enums.EntityTypeEnum;
 import org.buaa.project.common.enums.MessageTypeEnum;
 
+import java.util.HashMap;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -19,7 +21,7 @@ public class MqEvent {
     private MessageTypeEnum messageType;
 
     /**
-     * 触发者
+     * 触发者ID
      */
     private Long userId;
 
@@ -29,7 +31,7 @@ public class MqEvent {
     private EntityTypeEnum entityType;
 
     /**
-     * 触发实体类型
+     * 触发实体ID
      */
     private Long entityId;
 
@@ -37,5 +39,15 @@ public class MqEvent {
      * 实体用户ID
      */
     private Long entityUserId;
+
+    /**
+     * 是否正向
+     */
+    private Integer isPositive;
+
+    /**
+     * 更多信息
+     */
+    private HashMap<String, Object> data;
 
 }

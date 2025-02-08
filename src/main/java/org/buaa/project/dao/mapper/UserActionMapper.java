@@ -8,8 +8,8 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 import org.buaa.project.dao.entity.UserActionDO;
-import org.buaa.project.dto.req.QuestionCollectPageReqDTO;
-import org.buaa.project.dto.req.QuestionRecentPageReqDTO;
+import org.buaa.project.dto.req.question.QuestionCollectPageReqDTO;
+import org.buaa.project.dto.req.question.QuestionRecentPageReqDTO;
 import org.buaa.project.dto.resp.QuestionPageRespDTO;
 
 /**

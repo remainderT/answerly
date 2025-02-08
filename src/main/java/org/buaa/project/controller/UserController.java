@@ -1,12 +1,13 @@
 package org.buaa.project.controller;
 
 import cn.hutool.core.bean.BeanUtil;
+import jakarta.servlet.ServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.buaa.project.common.convention.result.Result;
 import org.buaa.project.common.convention.result.Results;
-import org.buaa.project.dto.req.UserLoginReqDTO;
-import org.buaa.project.dto.req.UserRegisterReqDTO;
-import org.buaa.project.dto.req.UserUpdateReqDTO;
+import org.buaa.project.dto.req.user.UserLoginReqDTO;
+import org.buaa.project.dto.req.user.UserRegisterReqDTO;
+import org.buaa.project.dto.req.user.UserUpdateReqDTO;
 import org.buaa.project.dto.resp.UserActualRespDTO;
 import org.buaa.project.dto.resp.UserLoginRespDTO;
 import org.buaa.project.dto.resp.UserRespDTO;
@@ -19,8 +20,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import jakarta.servlet.ServletRequest;
 
 
 /**
@@ -57,9 +56,9 @@ public class UserController {
     }
 
     /**
-     * 发送验证码
+     * 注册时候获得验证码
      */
-    @PostMapping("/api/answerly/v1/user/send-code")
+    @GetMapping("/api/answerly/v1/user/send-code")
     public Result<Boolean> sendCode(@RequestParam("mail") String mail) {
         return Results.success(userService.sendCode(mail));
     }

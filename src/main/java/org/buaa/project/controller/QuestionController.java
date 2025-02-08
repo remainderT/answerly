@@ -4,14 +4,15 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.RequiredArgsConstructor;
 import org.buaa.project.common.convention.result.Result;
 import org.buaa.project.common.convention.result.Results;
-import org.buaa.project.dto.req.QuestionCollectPageReqDTO;
-import org.buaa.project.dto.req.QuestionCollectReqDTO;
-import org.buaa.project.dto.req.QuestionRecentPageReqDTO;
-import org.buaa.project.dto.req.QuestionLikeReqDTO;
-import org.buaa.project.dto.req.QuestionMinePageReqDTO;
-import org.buaa.project.dto.req.QuestionPageReqDTO;
-import org.buaa.project.dto.req.QuestionUpdateReqDTO;
-import org.buaa.project.dto.req.QuestionUploadReqDTO;
+import org.buaa.project.dto.req.question.QuestionCollectPageReqDTO;
+import org.buaa.project.dto.req.question.QuestionCollectReqDTO;
+import org.buaa.project.dto.req.question.QuestionRecentPageReqDTO;
+import org.buaa.project.dto.req.question.QuestionLikeReqDTO;
+import org.buaa.project.dto.req.question.QuestionMinePageReqDTO;
+import org.buaa.project.dto.req.question.QuestionPageReqDTO;
+import org.buaa.project.dto.req.question.QuestionSolveReqDTO;
+import org.buaa.project.dto.req.question.QuestionUpdateReqDTO;
+import org.buaa.project.dto.req.question.QuestionUploadReqDTO;
 import org.buaa.project.dto.resp.QuestionPageRespDTO;
 import org.buaa.project.dto.resp.QuestionRespDTO;
 import org.buaa.project.service.QuestionService;
@@ -75,8 +76,8 @@ public class QuestionController {
      * 标记问题已经解决
      */
     @PostMapping("/api/answerly/v1/question/resolved")
-    public Result<Void> resolvedQuestion(@RequestParam("id") Long Id) {
-        questionService.resolvedQuestion(Id);
+    public Result<Void> resolvedQuestion(@RequestBody QuestionSolveReqDTO requestParam) {
+        questionService.resolvedQuestion(requestParam);
         return Results.success();
     }
 
@@ -107,7 +108,7 @@ public class QuestionController {
     /**
      * 分页查询我的题目
      */
-    @GetMapping("/api/answerly/v1/question/my")
+    @GetMapping("/api/answerly/v1/question/my/page")
     public Result<IPage<QuestionPageRespDTO>> findMyQuestion(QuestionMinePageReqDTO requestParam) {
         return Results.success(questionService.pageMyQuestion(requestParam));
     }
@@ -124,7 +125,7 @@ public class QuestionController {
     /**
      * 分页查询我收藏的题目
      */
-    @GetMapping("/api/answerly/v1/question/collect/my")
+    @GetMapping("/api/answerly/v1/question/collect/my/page")
     public Result<IPage<QuestionPageRespDTO>> findCollectQuestion(QuestionCollectPageReqDTO requestParam) {
         return Results.success(questionService.pageCollectQuestion(requestParam));
     }
@@ -132,7 +133,7 @@ public class QuestionController {
     /**
      * 分页查询最近浏览的题目
      */
-    @GetMapping("/api/answerly/v1/question/recent")
+    @GetMapping("/api/answerly/v1/question/recent/page")
     public Result<IPage<QuestionPageRespDTO>> findHistoryQuestion(QuestionRecentPageReqDTO requestParam) {
         return Results.success(questionService.pageRecentViewQuestion(requestParam));
     }

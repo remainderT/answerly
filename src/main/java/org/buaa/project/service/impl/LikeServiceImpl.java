@@ -33,15 +33,8 @@ public class LikeServiceImpl implements LikeService {
         } else {
             stringRedisTemplate.opsForSet().add(entityLikeKey, String.valueOf(userId));
             stringRedisTemplate.opsForValue().increment(userLikeKey);
-            MqEvent event = MqEvent.builder()
-                    .messageType(MessageTypeEnum.LIKE)
-                    .entityType(entityType)
-                    .userId(userId)
-                    .entityId(entityId)
-                    .entityUserId(entityUserId)
-                    .build();
-            producer.send(event);
         }
+        afterLike(userId, entityType, entityId, entityUserId, isMember? 0 : 1);
     }
 
     @Override
@@ -62,6 +55,18 @@ public class LikeServiceImpl implements LikeService {
         String entityLikeKey = String.format(PREFIX_ENTITY_LIKE, EntityTypeEnum.USER, userId);
         String size = stringRedisTemplate.opsForValue().get(entityLikeKey);
         return size != null ? Integer.parseInt(size) : 0;
+    }
+
+    public void afterLike(Long userId, EntityTypeEnum entityType, Long entityId, Long entityUserId, Integer isPositive) {
+        MqEvent event = MqEvent.builder()
+                .messageType(MessageTypeEnum.LIKE)
+                .entityType(entityType)
+                .userId(userId)
+                .entityId(entityId)
+                .entityUserId(entityUserId)
+                .isPositive(isPositive)
+                .build();
+        producer.send(event);
     }
 
 

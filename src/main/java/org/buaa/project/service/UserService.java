@@ -3,9 +3,9 @@ package org.buaa.project.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import jakarta.servlet.ServletRequest;
 import org.buaa.project.dao.entity.UserDO;
-import org.buaa.project.dto.req.UserLoginReqDTO;
-import org.buaa.project.dto.req.UserRegisterReqDTO;
-import org.buaa.project.dto.req.UserUpdateReqDTO;
+import org.buaa.project.dto.req.user.UserLoginReqDTO;
+import org.buaa.project.dto.req.user.UserRegisterReqDTO;
+import org.buaa.project.dto.req.user.UserUpdateReqDTO;
 import org.buaa.project.dto.resp.UserLoginRespDTO;
 import org.buaa.project.dto.resp.UserRespDTO;
 

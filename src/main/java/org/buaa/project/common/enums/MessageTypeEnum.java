@@ -9,7 +9,11 @@ public enum MessageTypeEnum {
 
     LIKE("like"),
 
-    COMMENT("comment");
+    COMMENT("comment"),
+
+    COLLECT("collect"),
+
+    USEFUL("useful");
 
     private final String type;
 

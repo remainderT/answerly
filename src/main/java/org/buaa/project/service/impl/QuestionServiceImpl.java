@@ -12,24 +12,28 @@ import lombok.RequiredArgsConstructor;
 import org.buaa.project.common.biz.user.UserContext;
 import org.buaa.project.common.convention.exception.ClientException;
 import org.buaa.project.common.enums.EntityTypeEnum;
+import org.buaa.project.common.enums.MessageTypeEnum;
 import org.buaa.project.dao.entity.QuestionDO;
 import org.buaa.project.dao.mapper.QuestionMapper;
 import org.buaa.project.dao.mapper.UserActionMapper;
-import org.buaa.project.dto.req.QuestionCollectPageReqDTO;
-import org.buaa.project.dto.req.QuestionCollectReqDTO;
-import org.buaa.project.dto.req.QuestionLikeReqDTO;
-import org.buaa.project.dto.req.QuestionMinePageReqDTO;
-import org.buaa.project.dto.req.QuestionPageReqDTO;
-import org.buaa.project.dto.req.QuestionRecentPageReqDTO;
-import org.buaa.project.dto.req.QuestionUpdateReqDTO;
-import org.buaa.project.dto.req.QuestionUploadReqDTO;
+import org.buaa.project.dto.req.question.QuestionCollectPageReqDTO;
+import org.buaa.project.dto.req.question.QuestionCollectReqDTO;
+import org.buaa.project.dto.req.question.QuestionLikeReqDTO;
+import org.buaa.project.dto.req.question.QuestionMinePageReqDTO;
+import org.buaa.project.dto.req.question.QuestionPageReqDTO;
+import org.buaa.project.dto.req.question.QuestionRecentPageReqDTO;
+import org.buaa.project.dto.req.question.QuestionSolveReqDTO;
+import org.buaa.project.dto.req.question.QuestionUpdateReqDTO;
+import org.buaa.project.dto.req.question.QuestionUploadReqDTO;
 import org.buaa.project.dto.resp.QuestionPageRespDTO;
 import org.buaa.project.dto.resp.QuestionRespDTO;
+import org.buaa.project.mq.MqEvent;
 import org.buaa.project.mq.MqProducer;
 import org.buaa.project.service.LikeService;
 import org.buaa.project.service.QuestionService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -92,11 +96,11 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
     }
 
     @Override
-    public void resolvedQuestion(Long id) {
-        checkQuestionExist(id);
-        checkQuestionOwner(id);
+    public void resolvedQuestion(QuestionSolveReqDTO requestParam) {
+        checkQuestionExist(requestParam.getId());
+        checkQuestionOwner(requestParam.getId());
 
-        QuestionDO question = baseMapper.selectById(id);
+        QuestionDO question = baseMapper.selectById(requestParam.getId());
         question.setSolvedFlag(1);
         baseMapper.updateById(question);
     }
@@ -177,10 +181,12 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
     }
 
     @Override
+    @Transactional
     public void collectQuestion(QuestionCollectReqDTO requestParam) {
         checkQuestionExist(requestParam.getId());
         Long userId = UserContext.getUserId();
         userActionMapper.collectQuestion(requestParam.getId(), userId, requestParam.getIsCollect());
+        afterCollect(userId, EntityTypeEnum.QUESTION, requestParam.getId(), 0L, requestParam.getIsCollect());
     }
 
     @Override
@@ -210,6 +216,18 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         if (!question.getUserId().equals(userId)) {
             throw new ClientException(QUESTION_ACCESS_CONTROL_ERROR);
         }
+    }
+
+    public void afterCollect(Long userId, EntityTypeEnum entityType, Long entityId, Long entityUserId, Integer isPositive) {
+            MqEvent event = MqEvent.builder()
+                .messageType(MessageTypeEnum.COLLECT)
+                .entityType(entityType)
+                .userId(userId)
+                .entityId(entityId)
+                .entityUserId(entityUserId)
+                .isPositive(isPositive)
+                .build();
+        producer.send(event);
     }
 
 }

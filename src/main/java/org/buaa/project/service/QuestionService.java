@@ -3,14 +3,15 @@ package org.buaa.project.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.buaa.project.dao.entity.QuestionDO;
-import org.buaa.project.dto.req.QuestionCollectPageReqDTO;
-import org.buaa.project.dto.req.QuestionCollectReqDTO;
-import org.buaa.project.dto.req.QuestionLikeReqDTO;
-import org.buaa.project.dto.req.QuestionMinePageReqDTO;
-import org.buaa.project.dto.req.QuestionPageReqDTO;
-import org.buaa.project.dto.req.QuestionRecentPageReqDTO;
-import org.buaa.project.dto.req.QuestionUpdateReqDTO;
-import org.buaa.project.dto.req.QuestionUploadReqDTO;
+import org.buaa.project.dto.req.question.QuestionCollectPageReqDTO;
+import org.buaa.project.dto.req.question.QuestionCollectReqDTO;
+import org.buaa.project.dto.req.question.QuestionLikeReqDTO;
+import org.buaa.project.dto.req.question.QuestionMinePageReqDTO;
+import org.buaa.project.dto.req.question.QuestionPageReqDTO;
+import org.buaa.project.dto.req.question.QuestionRecentPageReqDTO;
+import org.buaa.project.dto.req.question.QuestionSolveReqDTO;
+import org.buaa.project.dto.req.question.QuestionUpdateReqDTO;
+import org.buaa.project.dto.req.question.QuestionUploadReqDTO;
 import org.buaa.project.dto.resp.QuestionPageRespDTO;
 import org.buaa.project.dto.resp.QuestionRespDTO;
 
@@ -45,7 +46,7 @@ public interface QuestionService extends IService<QuestionDO> {
     /**
      * 标记问题已经解决
      */
-    void resolvedQuestion(Long id);
+    void resolvedQuestion(QuestionSolveReqDTO requestParam);
 
     /**
      * 查询题目详细信息

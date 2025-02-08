@@ -63,6 +63,11 @@ public class UserDO extends BaseDO {
     private Integer solvedCount;
 
     /**
+     * 评论有用数
+     */
+    private Integer usefulCount;
+
+    /**
      * 用户类型
      */
     private String userType;

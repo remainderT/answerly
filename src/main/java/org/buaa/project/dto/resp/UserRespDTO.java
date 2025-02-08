@@ -5,7 +5,7 @@ import lombok.Data;
 import org.buaa.project.toolkit.serialize.PhoneDesensitizationSerializer;
 
 /**
- * 用户返回参数响应
+ * 用户信息返回参数响应
  */
 @Data
 public class UserRespDTO {
@@ -39,6 +39,11 @@ public class UserRespDTO {
      * 解决问题的数量
      */
     private Integer solvedCount;
+
+    /**
+     * 评论有用数量
+     */
+    private Integer usefulCount;
 
     /**
      * 手机号

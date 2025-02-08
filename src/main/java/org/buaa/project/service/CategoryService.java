@@ -2,8 +2,8 @@ package org.buaa.project.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.buaa.project.dao.entity.CategoryDO;
-import org.buaa.project.dto.req.CategoryCreateReqDTO;
-import org.buaa.project.dto.req.CategoryUpdateReqDTO;
+import org.buaa.project.dto.req.category.CategoryCreateReqDTO;
+import org.buaa.project.dto.req.category.CategoryUpdateReqDTO;
 import org.buaa.project.dto.resp.CategoryRespDTO;
 
 import java.util.List;

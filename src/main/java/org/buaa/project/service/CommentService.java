@@ -3,11 +3,12 @@ package org.buaa.project.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.buaa.project.dao.entity.CommentDO;
-import org.buaa.project.dto.req.CommentLikeReqDTO;
-import org.buaa.project.dto.req.CommentMinePageReqDTO;
-import org.buaa.project.dto.req.CommentPageReqDTP;
-import org.buaa.project.dto.req.CommentUpdateReqDTO;
-import org.buaa.project.dto.req.CommentUploadReqDTO;
+import org.buaa.project.dto.req.comment.CommentLikeReqDTO;
+import org.buaa.project.dto.req.comment.CommentMinePageReqDTO;
+import org.buaa.project.dto.req.comment.CommentPageReqDTP;
+import org.buaa.project.dto.req.comment.CommentUpdateReqDTO;
+import org.buaa.project.dto.req.comment.CommentUploadReqDTO;
+import org.buaa.project.dto.req.comment.CommentUsefulReqDTO;
 import org.buaa.project.dto.resp.CommentPageRespDTO;
 
 /**
@@ -33,7 +34,7 @@ public interface CommentService extends IService<CommentDO> {
     /**
      * 标记评论有用
      */
-    void markUsefulComment(Long id);
+    void markUsefulComment(CommentUsefulReqDTO requestParam);
 
     /**
      * 更新评论

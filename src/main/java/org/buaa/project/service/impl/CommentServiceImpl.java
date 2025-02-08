@@ -12,22 +12,30 @@ import lombok.RequiredArgsConstructor;
 import org.buaa.project.common.biz.user.UserContext;
 import org.buaa.project.common.convention.exception.ClientException;
 import org.buaa.project.common.enums.EntityTypeEnum;
+import org.buaa.project.common.enums.MessageTypeEnum;
 import org.buaa.project.dao.entity.CommentDO;
+import org.buaa.project.dao.entity.QuestionDO;
 import org.buaa.project.dao.entity.UserDO;
 import org.buaa.project.dao.mapper.CommentMapper;
-import org.buaa.project.dto.req.CommentLikeReqDTO;
-import org.buaa.project.dto.req.CommentMinePageReqDTO;
-import org.buaa.project.dto.req.CommentPageReqDTP;
-import org.buaa.project.dto.req.CommentUpdateReqDTO;
-import org.buaa.project.dto.req.CommentUploadReqDTO;
+import org.buaa.project.dao.mapper.UserMapper;
+import org.buaa.project.dto.req.comment.CommentLikeReqDTO;
+import org.buaa.project.dto.req.comment.CommentMinePageReqDTO;
+import org.buaa.project.dto.req.comment.CommentPageReqDTP;
+import org.buaa.project.dto.req.comment.CommentUpdateReqDTO;
+import org.buaa.project.dto.req.comment.CommentUploadReqDTO;
+import org.buaa.project.dto.req.comment.CommentUsefulReqDTO;
 import org.buaa.project.dto.resp.CommentPageRespDTO;
+import org.buaa.project.mq.MqEvent;
+import org.buaa.project.mq.MqProducer;
 import org.buaa.project.service.CommentService;
 import org.buaa.project.service.LikeService;
 import org.buaa.project.service.QuestionService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -50,6 +58,9 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
 
     private final LikeService likeService;
 
+    private final MqProducer producer;
+    private final UserMapper userMapper;
+
     @Override
     public void likeComment(CommentLikeReqDTO requestParam) {
         checkCommentExist(requestParam.getId());
@@ -59,14 +70,24 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
     }
 
     @Override
+    @Transactional
     public void uploadComment(CommentUploadReqDTO requestParam){
         CommentDO CommentDO = BeanUtil.copyProperties(requestParam, CommentDO.class);
         CommentDO.setUserId(UserContext.getUserId());
         CommentDO.setUsername(UserContext.getUsername());
+
         baseMapper.insert(CommentDO);
+
+        QuestionDO questionDO = questionService.getById(CommentDO.getQuestionId());
+        questionDO.setCommentCount(questionDO.getCommentCount() + 1);
+        questionService.updateById(questionDO);
+
+        afterComment(UserContext.getUserId(), EntityTypeEnum.COMMENT, CommentDO.getId(), 0L, 1, CommentDO.getContent());
+
     }
 
     @Override
+    @Transactional
     public void deleteComment(Long id){
         checkCommentExist(id);
         if(!UserContext.getUserType().equals("admin")){
@@ -76,16 +97,29 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
         CommentDO CommentDO = baseMapper.selectById(id);
         CommentDO.setDelFlag(1);
         baseMapper.updateById(CommentDO);
+
+        QuestionDO questionDO = questionService.getById(CommentDO.getQuestionId());
+        questionDO.setCommentCount(questionDO.getCommentCount() - 1);
+        questionService.updateById(questionDO);
+
+        afterComment(UserContext.getUserId(), EntityTypeEnum.COMMENT, CommentDO.getId(), 0L, 0, null);
     }
 
     @Override
-    public void markUsefulComment(Long id){
-        checkCommentExist(id);
+    @Transactional
+    public void markUsefulComment(CommentUsefulReqDTO requestParam) {
+        checkCommentExist(requestParam.getId());
 
-        CommentDO CommentDO = baseMapper.selectById(id);
+        CommentDO CommentDO = baseMapper.selectById(requestParam.getId());
         questionService.checkQuestionOwner(CommentDO.getQuestionId());
-        CommentDO.setUseful(1);
+        CommentDO.setUseful(requestParam.getIsUseful());
         baseMapper.updateById(CommentDO);
+
+        UserDO userDO = userMapper.selectById(CommentDO.getUserId());
+        userDO.setUsefulCount(userDO.getUsefulCount() + requestParam.getIsUseful() == 1 ? 1 : -1);
+        userMapper.updateById(userDO);
+
+        afterUseful(UserContext.getUserId(), EntityTypeEnum.COMMENT, CommentDO.getId(), CommentDO.getUserId(), requestParam.getIsUseful());
     }
 
     @Override
@@ -193,6 +227,33 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
         if (!Comment.getUserId().equals(userId)) {
             throw new ClientException(COMMENT_ACCESS_CONTROL_ERROR);
         }
+    }
+
+    public void afterComment(Long userId, EntityTypeEnum entityType, Long entityId, Long entityUserId, Integer isPositive, String content) {
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("content", content);
+        MqEvent event = MqEvent.builder()
+                .messageType(MessageTypeEnum.COMMENT)
+                .entityType(entityType)
+                .userId(userId)
+                .entityId(entityId)
+                .entityUserId(entityUserId)
+                .isPositive(isPositive)
+                .data(data)
+                .build();
+        producer.send(event);
+    }
+
+    public void afterUseful(Long userId, EntityTypeEnum entityType, Long entityId, Long entityUserId, Integer isPositive) {
+        MqEvent event = MqEvent.builder()
+                .messageType(MessageTypeEnum.USEFUL)
+                .entityType(entityType)
+                .userId(userId)
+                .entityId(entityId)
+                .entityUserId(entityUserId)
+                .isPositive(isPositive)
+                .build();
+        producer.send(event);
     }
 
 

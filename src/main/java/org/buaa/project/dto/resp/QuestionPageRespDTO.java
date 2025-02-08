@@ -2,6 +2,8 @@ package org.buaa.project.dto.resp;
 
 import lombok.Data;
 
+import java.util.Date;
+
 /**
  * 问题分页查询响应
  */
@@ -42,5 +44,10 @@ public class QuestionPageRespDTO {
      * 是否解决 0：未解决 1：已解决
      */
     private Integer solvedFlag;
+
+    /**
+     * 日期
+     */
+    private Date createTime;
 
 }

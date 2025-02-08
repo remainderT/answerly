@@ -1,4 +1,4 @@
-package org.buaa.project.dto.req;
+package org.buaa.project.dto.req.comment;
 
 import lombok.Data;
 
@@ -17,4 +17,9 @@ public class CommentLikeReqDTO {
      * 评论拥有者id
      */
     private Long entityUserId;
+
+    /**
+     * 是否点赞
+     */
+    private Integer isLike;
 }

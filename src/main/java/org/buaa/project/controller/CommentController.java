@@ -4,11 +4,12 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.RequiredArgsConstructor;
 import org.buaa.project.common.convention.result.Result;
 import org.buaa.project.common.convention.result.Results;
-import org.buaa.project.dto.req.CommentLikeReqDTO;
-import org.buaa.project.dto.req.CommentMinePageReqDTO;
-import org.buaa.project.dto.req.CommentPageReqDTP;
-import org.buaa.project.dto.req.CommentUpdateReqDTO;
-import org.buaa.project.dto.req.CommentUploadReqDTO;
+import org.buaa.project.dto.req.comment.CommentLikeReqDTO;
+import org.buaa.project.dto.req.comment.CommentMinePageReqDTO;
+import org.buaa.project.dto.req.comment.CommentPageReqDTP;
+import org.buaa.project.dto.req.comment.CommentUpdateReqDTO;
+import org.buaa.project.dto.req.comment.CommentUploadReqDTO;
+import org.buaa.project.dto.req.comment.CommentUsefulReqDTO;
 import org.buaa.project.dto.resp.CommentPageRespDTO;
 import org.buaa.project.service.CommentService;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -59,7 +60,7 @@ public class CommentController {
      * 点赞评论
      */
     @PostMapping("/api/answerly/v1/comment/like")
-    public Result<Void> likeQuestion(CommentLikeReqDTO requestParam) {
+    public Result<Void> likeQuestion(@RequestBody CommentLikeReqDTO requestParam) {
         CommentService.likeComment(requestParam);
         return Results.success();
     }
@@ -68,8 +69,8 @@ public class CommentController {
      * 标记评论有用
      */
     @PostMapping("/api/answerly/v1/comment/useful")
-    public Result<Void> usefulQuestion(@RequestParam("id") Long Id) {
-        CommentService.markUsefulComment(Id);
+    public Result<Void> usefulQuestion(@RequestBody CommentUsefulReqDTO requestParam) {
+        CommentService.markUsefulComment(requestParam);
         return Results.success();
     }
 
@@ -84,7 +85,7 @@ public class CommentController {
     /**
      * 分页查询我的回答
      */
-    @GetMapping("/api/answerly/v1/comment/my")
+    @GetMapping("/api/answerly/v1/comment/my/page")
     public  Result<IPage<CommentPageRespDTO>> pageMyComment(CommentMinePageReqDTO requestParam) {
         return Results.success(CommentService.pageMyComment(requestParam));
     }

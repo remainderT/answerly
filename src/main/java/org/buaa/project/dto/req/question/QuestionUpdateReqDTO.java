@@ -1,4 +1,4 @@
-package org.buaa.project.dto.req;
+package org.buaa.project.dto.req.question;
 
 import lombok.Data;
 

@@ -51,6 +51,11 @@ public class QuestionRespDTO {
     private Integer likeCount;
 
     /**
+     * 评论数
+     */
+    private Integer commentCount;
+
+    /**
      * 点赞状态
      */
     private String likeStatus;
