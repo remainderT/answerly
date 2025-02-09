@@ -31,14 +31,24 @@ public class RedisCacheConstants {
     public static final long USER_LOGIN_EXPIRE = 30L;
 
     /**
-     * 用户信息缓存标识
+     * 用户个人信息缓存标识
      */
     public static final String USER_INFO_KEY = "answerly:user:info:";
 
     /**
-     * 点赞缓存标识
+     * 题目统计信息缓存标识
      */
-    public static final String PREFIX_ENTITY_LIKE = "answerly:like:%s:%s";
+    public static final String QUESTION_COUNT_KEY = "answerly:question:count:";
+
+    /**
+     * 回答统计信息缓存标识
+     */
+    public static final String COMMENT_COUNT_KEY = "answerly:comment:count:";
+
+    /**
+     * 用户统计信息缓存标识
+     */
+    public static final String USER_COUNT_KEY = "answerly:user:count:";
 
     /**
      * 消息队列 Topic 缓存标识

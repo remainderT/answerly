@@ -58,9 +58,9 @@ public class UserDO extends BaseDO {
     private Integer likeCount;
 
     /**
-     * 解决问题的数量
+     * 收藏题目数
      */
-    private Integer solvedCount;
+    private Integer collectCount;
 
     /**
      * 评论有用数

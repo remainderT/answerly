@@ -18,8 +18,4 @@ public class CommentLikeReqDTO {
      */
     private Long entityUserId;
 
-    /**
-     * 是否点赞
-     */
-    private Integer isLike;
 }

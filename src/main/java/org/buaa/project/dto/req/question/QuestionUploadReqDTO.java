@@ -3,7 +3,7 @@ package org.buaa.project.dto.req.question;
 import lombok.Data;
 
 /**
- * 问题上传请求参数
+ * 题目上传请求参数
  */
 @Data
 public class QuestionUploadReqDTO {

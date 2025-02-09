@@ -18,7 +18,7 @@ import org.buaa.project.dto.resp.QuestionRespDTO;
 import java.util.List;
 
 /**
- * 问题接口层
+ * 题目接口层
  */
 public interface QuestionService extends IService<QuestionDO> {
 
@@ -44,7 +44,7 @@ public interface QuestionService extends IService<QuestionDO> {
     void likeQuestion(QuestionLikeReqDTO requestParam);
 
     /**
-     * 标记问题已经解决
+     * 标记题目已经解决
      */
     void resolvedQuestion(QuestionSolveReqDTO requestParam);
 
@@ -79,7 +79,7 @@ public interface QuestionService extends IService<QuestionDO> {
     IPage<QuestionPageRespDTO> pageMyQuestion(QuestionMinePageReqDTO requestParam);
 
     /**
-     * 收藏问题
+     * 收藏题目
      */
     void collectQuestion(QuestionCollectReqDTO requestParam);
 
@@ -92,5 +92,10 @@ public interface QuestionService extends IService<QuestionDO> {
      * 分页查询最近浏览的题目
      */
     IPage<QuestionPageRespDTO> pageRecentViewQuestion(QuestionRecentPageReqDTO requestParam);
+
+    /**
+     * 根据题目id得到用户id
+     */
+    Long getUserIdByQuestionId(Long questionId);
 
 }

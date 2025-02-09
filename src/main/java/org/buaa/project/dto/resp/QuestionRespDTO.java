@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.Date;
 
 /**
- * 问题详细信息响应
+ * 题目详细信息响应
  */
 @Data
 public class QuestionRespDTO {
@@ -59,6 +59,11 @@ public class QuestionRespDTO {
      * 点赞状态
      */
     private String likeStatus;
+
+    /**
+     * 收藏状态
+     */
+    private String collectStatus;
 
     /**
      * 是否解决 0：未解决 1：已解决

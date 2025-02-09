@@ -73,7 +73,7 @@ public class QuestionController {
     }
 
     /**
-     * 标记问题已经解决
+     * 标记题目已经解决
      */
     @PostMapping("/api/answerly/v1/question/resolved")
     public Result<Void> resolvedQuestion(@RequestBody QuestionSolveReqDTO requestParam) {

@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.buaa.project.common.biz.user.UserContext;
 import org.buaa.project.common.convention.exception.ClientException;
 import org.buaa.project.common.enums.EntityTypeEnum;
-import org.buaa.project.common.enums.MessageTypeEnum;
+import org.buaa.project.common.enums.UserActionTypeEnum;
 import org.buaa.project.dao.entity.QuestionDO;
 import org.buaa.project.dao.mapper.QuestionMapper;
 import org.buaa.project.dao.mapper.UserActionMapper;
@@ -27,17 +27,16 @@ import org.buaa.project.dto.req.question.QuestionUpdateReqDTO;
 import org.buaa.project.dto.req.question.QuestionUploadReqDTO;
 import org.buaa.project.dto.resp.QuestionPageRespDTO;
 import org.buaa.project.dto.resp.QuestionRespDTO;
-import org.buaa.project.mq.MqEvent;
-import org.buaa.project.mq.MqProducer;
-import org.buaa.project.service.LikeService;
 import org.buaa.project.service.QuestionService;
+import org.buaa.project.service.UserActionService;
+import org.buaa.project.toolkit.RedisCount;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static org.buaa.project.common.consts.RedisCacheConstants.QUESTION_COUNT_KEY;
 import static org.buaa.project.common.enums.QAErrorCodeEnum.QUESTION_ACCESS_CONTROL_ERROR;
 import static org.buaa.project.common.enums.QAErrorCodeEnum.QUESTION_NULL;
 
@@ -48,11 +47,9 @@ import static org.buaa.project.common.enums.QAErrorCodeEnum.QUESTION_NULL;
 @RequiredArgsConstructor
 public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO> implements QuestionService {
 
-    private final LikeService likeService;
-
-    private final MqProducer producer;
-
     private final UserActionMapper userActionMapper;
+    private final UserActionService userActionService;
+    private final RedisCount redisCount;
 
     @Override
     public void uploadQuestion(QuestionUploadReqDTO requestParam) {
@@ -89,10 +86,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
 
     @Override
     public void likeQuestion(QuestionLikeReqDTO requestParam) {
-        checkQuestionExist(requestParam.getQuestionId());
+        checkQuestionExist(requestParam.getId());
 
-        long userId = UserContext.getUserId();
-        likeService.like(userId, EntityTypeEnum.QUESTION, requestParam.getQuestionId(), requestParam.getEntityUserId());
+        userActionService.userAction(UserContext.getUserId(), EntityTypeEnum.QUESTION, requestParam.getId(), requestParam.getEntityUserId(), UserActionTypeEnum.LIKE);
     }
 
     @Override
@@ -103,6 +99,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         QuestionDO question = baseMapper.selectById(requestParam.getId());
         question.setSolvedFlag(1);
         baseMapper.updateById(question);
+        //todo 用户解决问题数如何去定义
     }
 
     @Override
@@ -110,14 +107,24 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         QuestionDO question = baseMapper.selectById(id);
         QuestionRespDTO result = new QuestionRespDTO();
         BeanUtils.copyProperties(question, result);
-        int likeCount = likeService.findEntityLikeCount(EntityTypeEnum.QUESTION, id);
-        Long userId = UserContext.getUserId();
-        String likeStatus = UserContext.getUsername() == null ? "未登录" : likeService.findEntityLikeStatus(userId, EntityTypeEnum.QUESTION, id);
-        result.setLikeCount(likeCount);
-        result.setLikeStatus(likeStatus);
 
-        // 更新用户最后一次浏览时间
-        userActionMapper.updateLastViewTime(userId, id);
+        Long userId = UserContext.getUserId();
+
+        // 更新最后一次浏览时间
+        userActionService.updateLastViewTime(userId, EntityTypeEnum.QUESTION, id);
+
+        String likeStatus = UserContext.getUsername() == null ? "未登录" : userActionService.getUserAction(userId, EntityTypeEnum.QUESTION, id).getLikeStat() == 1 ?  "已点赞" : "未点赞";
+        result.setLikeStatus(likeStatus);
+        String collectStatus = UserContext.getUsername() == null ? "未登录" : userActionService.getUserAction(userId, EntityTypeEnum.QUESTION, id).getCollectStat() == 1 ? "已收藏" : "未收藏";
+        result.setCollectStatus(collectStatus);
+
+        // 填充计数信息
+        result.setLikeCount(redisCount.hGet(QUESTION_COUNT_KEY + id, "like"));
+        result.setViewCount(redisCount.hGet(QUESTION_COUNT_KEY + id, "view"));
+        result.setCommentCount(redisCount.hGet(QUESTION_COUNT_KEY + id, "comment"));
+
+        // 更新浏览数
+        redisCount.hIncr(QUESTION_COUNT_KEY + id, "view", 1);
         return result;
     }
 
@@ -148,6 +155,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
                     dto.setContent(dto.getContent().replaceAll(Pattern.quote(search), highlightSearch));
                 }
             }
+            fillQuestionCount(dto);
             return dto;
         });
     }
@@ -181,26 +189,40 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
     }
 
     @Override
-    @Transactional
     public void collectQuestion(QuestionCollectReqDTO requestParam) {
         checkQuestionExist(requestParam.getId());
-        Long userId = UserContext.getUserId();
-        userActionMapper.collectQuestion(requestParam.getId(), userId, requestParam.getIsCollect());
-        afterCollect(userId, EntityTypeEnum.QUESTION, requestParam.getId(), 0L, requestParam.getIsCollect());
+
+        userActionService.userAction(UserContext.getUserId(), EntityTypeEnum.QUESTION, requestParam.getId(), requestParam.getEntityUserId(), UserActionTypeEnum.COLLECT);
     }
 
     @Override
     public IPage<QuestionPageRespDTO> pageCollectQuestion(QuestionCollectPageReqDTO requestParam) {
         Long userId = UserContext.getUserId();
         Page<QuestionPageRespDTO> page = new Page<>(requestParam.getCurrent(), requestParam.getSize());
-        return userActionMapper.pageCollectQuestion(page, userId, requestParam);
+        return userActionMapper.pageCollectQuestion(page, userId, requestParam).convert(
+                each -> {
+                    fillQuestionCount(each);
+                    return each;
+                }
+        );
     }
 
     @Override
     public IPage<QuestionPageRespDTO> pageRecentViewQuestion(QuestionRecentPageReqDTO requestParam) {
         Long userId = UserContext.getUserId();
         Page<QuestionPageRespDTO> page = new Page<>(requestParam.getCurrent(), requestParam.getSize());
-        return userActionMapper.pageRecentViewQuestion(page, userId, requestParam);
+        return userActionMapper.pageRecentViewQuestion(page, userId, requestParam).convert(
+                each -> {
+                    fillQuestionCount(each);
+                    return each;
+                }
+        );
+    }
+
+    private void fillQuestionCount(QuestionPageRespDTO dto) {
+        dto.setLikeCount(redisCount.hGet(QUESTION_COUNT_KEY + dto.getId(), "like"));
+        dto.setViewCount(redisCount.hGet(QUESTION_COUNT_KEY + dto.getId(), "view"));
+        dto.setCommentCount(redisCount.hGet(QUESTION_COUNT_KEY + dto.getId(), "comment"));
     }
 
     public void checkQuestionExist(Long id) {
@@ -218,16 +240,10 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         }
     }
 
-    public void afterCollect(Long userId, EntityTypeEnum entityType, Long entityId, Long entityUserId, Integer isPositive) {
-            MqEvent event = MqEvent.builder()
-                .messageType(MessageTypeEnum.COLLECT)
-                .entityType(entityType)
-                .userId(userId)
-                .entityId(entityId)
-                .entityUserId(entityUserId)
-                .isPositive(isPositive)
-                .build();
-        producer.send(event);
+    public Long getUserIdByQuestionId(Long id) {
+        QuestionDO question = baseMapper.selectById(id);
+        return question.getUserId();
+
     }
 
 }

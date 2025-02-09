@@ -13,11 +13,10 @@ import org.buaa.project.common.biz.user.UserContext;
 import org.buaa.project.common.convention.exception.ClientException;
 import org.buaa.project.common.enums.EntityTypeEnum;
 import org.buaa.project.common.enums.MessageTypeEnum;
+import org.buaa.project.common.enums.UserActionTypeEnum;
 import org.buaa.project.dao.entity.CommentDO;
-import org.buaa.project.dao.entity.QuestionDO;
 import org.buaa.project.dao.entity.UserDO;
 import org.buaa.project.dao.mapper.CommentMapper;
-import org.buaa.project.dao.mapper.UserMapper;
 import org.buaa.project.dto.req.comment.CommentLikeReqDTO;
 import org.buaa.project.dto.req.comment.CommentMinePageReqDTO;
 import org.buaa.project.dto.req.comment.CommentPageReqDTP;
@@ -28,12 +27,12 @@ import org.buaa.project.dto.resp.CommentPageRespDTO;
 import org.buaa.project.mq.MqEvent;
 import org.buaa.project.mq.MqProducer;
 import org.buaa.project.service.CommentService;
-import org.buaa.project.service.LikeService;
 import org.buaa.project.service.QuestionService;
+import org.buaa.project.service.UserActionService;
+import org.buaa.project.toolkit.RedisCount;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +40,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.buaa.project.common.consts.RedisCacheConstants.COMMENT_COUNT_KEY;
+import static org.buaa.project.common.consts.RedisCacheConstants.USER_COUNT_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_INFO_KEY;
 import static org.buaa.project.common.enums.QAErrorCodeEnum.COMMENT_ACCESS_CONTROL_ERROR;
 import static org.buaa.project.common.enums.QAErrorCodeEnum.COMMENT_NULL;
@@ -56,41 +57,40 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
 
     private final StringRedisTemplate stringRedisTemplate;
 
-    private final LikeService likeService;
+    private final UserActionService userActionService;
+
+    private final RedisCount redisCount;
 
     private final MqProducer producer;
-    private final UserMapper userMapper;
 
     @Override
     public void likeComment(CommentLikeReqDTO requestParam) {
         checkCommentExist(requestParam.getId());
 
-        long userId = UserContext.getUserId();
-        likeService.like(userId, EntityTypeEnum.COMMENT, requestParam.getId(), requestParam.getEntityUserId());
+        userActionService.userAction(UserContext.getUserId(), EntityTypeEnum.COMMENT, requestParam.getId(), requestParam.getEntityUserId(), UserActionTypeEnum.LIKE);
     }
 
     @Override
-    @Transactional
-    public void uploadComment(CommentUploadReqDTO requestParam){
+    public void uploadComment(CommentUploadReqDTO requestParam) {
         CommentDO CommentDO = BeanUtil.copyProperties(requestParam, CommentDO.class);
         CommentDO.setUserId(UserContext.getUserId());
         CommentDO.setUsername(UserContext.getUsername());
 
         baseMapper.insert(CommentDO);
-
-        QuestionDO questionDO = questionService.getById(CommentDO.getQuestionId());
-        questionDO.setCommentCount(questionDO.getCommentCount() + 1);
-        questionService.updateById(questionDO);
-
-        afterComment(UserContext.getUserId(), EntityTypeEnum.COMMENT, CommentDO.getId(), 0L, 1, CommentDO.getContent());
+        if (CommentDO.getParentCommentId() == 0) {
+            Long entityUserId = questionService.getUserIdByQuestionId(CommentDO.getQuestionId());
+            userActionService.userAction(UserContext.getUserId(), EntityTypeEnum.QUESTION, CommentDO.getQuestionId(), entityUserId, UserActionTypeEnum.COMMENT);
+        } else {
+            Long entityUserId = baseMapper.selectById(CommentDO.getParentCommentId()).getUserId();
+            userActionService.userAction(UserContext.getUserId(), EntityTypeEnum.COMMENT, CommentDO.getParentCommentId(), entityUserId, UserActionTypeEnum.COMMENT);
+        }
 
     }
 
     @Override
-    @Transactional
-    public void deleteComment(Long id){
+    public void deleteComment(Long id) {
         checkCommentExist(id);
-        if(!UserContext.getUserType().equals("admin")){
+        if(!UserContext.getUserType().equals("admin")) {
             checkCommentOwner(id);
         }
 
@@ -98,33 +98,46 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
         CommentDO.setDelFlag(1);
         baseMapper.updateById(CommentDO);
 
-        QuestionDO questionDO = questionService.getById(CommentDO.getQuestionId());
-        questionDO.setCommentCount(questionDO.getCommentCount() - 1);
-        questionService.updateById(questionDO);
+        int likeCount = redisCount.hGet(COMMENT_COUNT_KEY + CommentDO.getUserId(), "like");
+        redisCount.hIncr(USER_COUNT_KEY + CommentDO.getUserId(), "like", -likeCount);
 
-        afterComment(UserContext.getUserId(), EntityTypeEnum.COMMENT, CommentDO.getId(), 0L, 0, null);
+        if (CommentDO.getParentCommentId() == 0) {
+            Long entityUserId = questionService.getUserIdByQuestionId(CommentDO.getQuestionId());
+            userActionService.userAction(CommentDO.getUserId(), EntityTypeEnum.QUESTION, CommentDO.getQuestionId(), entityUserId, UserActionTypeEnum.COMMENT);
+        } else {
+            Long entityUserId = baseMapper.selectById(CommentDO.getParentCommentId()).getUserId();
+            userActionService.userAction(CommentDO.getUserId(), EntityTypeEnum.COMMENT, CommentDO.getParentCommentId(), entityUserId, UserActionTypeEnum.COMMENT);
+        }
     }
 
     @Override
-    @Transactional
     public void markUsefulComment(CommentUsefulReqDTO requestParam) {
         checkCommentExist(requestParam.getId());
 
         CommentDO CommentDO = baseMapper.selectById(requestParam.getId());
         questionService.checkQuestionOwner(CommentDO.getQuestionId());
-        CommentDO.setUseful(requestParam.getIsUseful());
+        boolean isPositive = CommentDO.getUseful() == 0;
+        CommentDO.setUseful(isPositive ? 1 : 0);
         baseMapper.updateById(CommentDO);
 
-        UserDO userDO = userMapper.selectById(CommentDO.getUserId());
-        userDO.setUsefulCount(userDO.getUsefulCount() + requestParam.getIsUseful() == 1 ? 1 : -1);
-        userMapper.updateById(userDO);
+        redisCount.hIncr(USER_COUNT_KEY + CommentDO.getUserId(), "useful", isPositive ? 1 : -1);
 
-        afterUseful(UserContext.getUserId(), EntityTypeEnum.COMMENT, CommentDO.getId(), CommentDO.getUserId(), requestParam.getIsUseful());
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("isPositive", isPositive);
+
+        MqEvent event = MqEvent.builder()
+                .messageType(MessageTypeEnum.USEFUL)
+                .entityType(EntityTypeEnum.COMMENT)
+                .userId(UserContext.getUserId())
+                .entityId(CommentDO.getId())
+                .entityUserId(CommentDO.getUserId())
+                .data(data)
+                .build();
+        producer.send(event);
     }
 
     @Override
     public void updateComment(CommentUpdateReqDTO requestParam) {
-        //todo 也许可以加一个被标为有用之后就不允许修改的功能
         checkCommentExist(requestParam.getId());
         checkCommentOwner(requestParam.getId());
 
@@ -148,8 +161,9 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
             UserDO userDO = JSON.parseObject(userJson, UserDO.class);
             CommentPageRespDTO CommentPageRespDTO = BeanUtil.copyProperties(CommentDO, CommentPageRespDTO.class);
             CommentPageRespDTO.setAvatar(userDO.getAvatar());
-            CommentPageRespDTO.setLikeCount(likeService.findEntityLikeCount(EntityTypeEnum.COMMENT, CommentDO.getId()));
-            CommentPageRespDTO.setLikeStatus(UserContext.getUsername() == null ? "未登录" : likeService.findEntityLikeStatus(UserContext.getUserId(), EntityTypeEnum.COMMENT, CommentDO.getId()));
+            CommentPageRespDTO.setLikeCount(redisCount.hGet(COMMENT_COUNT_KEY + CommentDO.getId(), "like"));
+            String likeStatus = userActionService.getUserAction(UserContext.getUserId(), EntityTypeEnum.QUESTION, CommentDO.getId()).getLikeStat() == 1 ?  "已点赞" : "未点赞";
+            CommentPageRespDTO.setLikeStatus(likeStatus);
             return CommentPageRespDTO;
         }).collect(Collectors.toList());
 
@@ -164,6 +178,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
 
     @Override
     public IPage<CommentPageRespDTO> pageComment(CommentPageReqDTP requestParam) {
+        // 先查出文章的顶级评论（parent_comment_id = 0）
         LambdaQueryWrapper<CommentDO> queryWrapper = Wrappers.lambdaQuery(CommentDO.class)
                 .eq(CommentDO::getDelFlag, 0)
                 .eq(CommentDO::getQuestionId, requestParam.getId())
@@ -171,6 +186,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
         IPage<CommentDO> page = baseMapper.selectPage(requestParam, queryWrapper);
 
         List<CommentPageRespDTO> CommentPageRespDTOList = page.getRecords().stream().map(top -> {
+            // 接下来就是针对每个顶级评论，查询它下面的所有回复
             LambdaQueryWrapper<CommentDO> subQueryWrapper = Wrappers.lambdaQuery(CommentDO.class)
                     .eq(CommentDO::getDelFlag, 0)
                     .eq(CommentDO::getTopCommentId, top.getId());
@@ -207,8 +223,10 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
         CommentPageRespDTO commentPageRespDTO = BeanUtil.copyProperties(commentDO, CommentPageRespDTO.class);
         commentTo.ifPresent(commentPageRespDTO::setCommentTo);
         commentPageRespDTO.setAvatar(userDO.getAvatar());
-        commentPageRespDTO.setLikeCount(likeService.findEntityLikeCount(EntityTypeEnum.COMMENT, commentDO.getId()));
-        commentPageRespDTO.setLikeStatus(UserContext.getUsername() == null ? "未登录" : likeService.findEntityLikeStatus(UserContext.getUserId(), EntityTypeEnum.COMMENT, commentDO.getId()));
+        commentPageRespDTO.setLikeCount(redisCount.hGet(COMMENT_COUNT_KEY + commentDO.getId(), "like"));
+        String likeStatus = UserContext.getUsername() == null ? "未登录" :
+                userActionService.getUserAction(UserContext.getUserId(), EntityTypeEnum.QUESTION, commentDO.getId()).getLikeStat() == 1 ?  "已点赞" : "未点赞";
+        commentPageRespDTO.setLikeStatus(likeStatus);
         return commentPageRespDTO;
     }
 
@@ -228,33 +246,5 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
             throw new ClientException(COMMENT_ACCESS_CONTROL_ERROR);
         }
     }
-
-    public void afterComment(Long userId, EntityTypeEnum entityType, Long entityId, Long entityUserId, Integer isPositive, String content) {
-        HashMap<String, Object> data = new HashMap<>();
-        data.put("content", content);
-        MqEvent event = MqEvent.builder()
-                .messageType(MessageTypeEnum.COMMENT)
-                .entityType(entityType)
-                .userId(userId)
-                .entityId(entityId)
-                .entityUserId(entityUserId)
-                .isPositive(isPositive)
-                .data(data)
-                .build();
-        producer.send(event);
-    }
-
-    public void afterUseful(Long userId, EntityTypeEnum entityType, Long entityId, Long entityUserId, Integer isPositive) {
-        MqEvent event = MqEvent.builder()
-                .messageType(MessageTypeEnum.USEFUL)
-                .entityType(entityType)
-                .userId(userId)
-                .entityId(entityId)
-                .entityUserId(entityUserId)
-                .isPositive(isPositive)
-                .build();
-        producer.send(event);
-    }
-
 
 }

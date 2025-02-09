@@ -5,7 +5,7 @@ import lombok.Data;
 import org.buaa.project.dao.entity.QuestionDO;
 
 /**
- * 问题分页查询请求
+ * 题目分页查询请求参数
  */
 @Data
 public class QuestionPageReqDTO extends Page<QuestionDO> {

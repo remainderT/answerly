@@ -41,11 +41,6 @@ public class MqEvent {
     private Long entityUserId;
 
     /**
-     * 是否正向
-     */
-    private Integer isPositive;
-
-    /**
      * 更多信息
      */
     private HashMap<String, Object> data;

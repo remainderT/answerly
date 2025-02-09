@@ -36,12 +36,12 @@ public class UserRespDTO {
     private Integer likeCount;
 
     /**
-     * 解决问题的数量
+     * 收藏题目数
      */
-    private Integer solvedCount;
+    private Integer collectCount;
 
     /**
-     * 评论有用数量
+     * 被认为回答有用数
      */
     private Integer usefulCount;
 

@@ -28,9 +28,9 @@ import org.buaa.project.dto.resp.UserLoginRespDTO;
 import org.buaa.project.dto.resp.UserRespDTO;
 import org.buaa.project.mq.MqEvent;
 import org.buaa.project.mq.MqProducer;
-import org.buaa.project.service.LikeService;
 import org.buaa.project.service.UserService;
 import org.buaa.project.toolkit.RandomGenerator;
+import org.buaa.project.toolkit.RedisCount;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
@@ -48,6 +48,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static org.buaa.project.common.consts.MailSendConstants.EMAIL_SUFFIX;
+import static org.buaa.project.common.consts.RedisCacheConstants.USER_COUNT_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_INFO_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_LOGIN_CAPTCHA_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_LOGIN_EXPIRE;
@@ -55,6 +56,7 @@ import static org.buaa.project.common.consts.RedisCacheConstants.USER_LOGIN_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_REGISTER_CODE_EXPIRE;
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_REGISTER_CODE_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_REGISTER_LOCK_KEY;
+import static org.buaa.project.common.consts.SystemConstants.SYSTEM_MESSAGE_ID;
 import static org.buaa.project.common.enums.ServiceErrorCodeEnum.MAIL_SEND_ERROR;
 import static org.buaa.project.common.enums.UserErrorCodeEnum.USER_CODE_ERROR;
 import static org.buaa.project.common.enums.UserErrorCodeEnum.USER_EXIST;
@@ -79,7 +81,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
     private final StringRedisTemplate stringRedisTemplate;
 
-    private final LikeService likeService;
+    private final RedisCount redisCount;
 
     private final MqProducer producer;
 
@@ -96,7 +98,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         }
         UserRespDTO result = new UserRespDTO();
         BeanUtils.copyProperties(userDO, result);
-        result.setLikeCount(likeService.findUserLikeCount(userDO.getId()));
+        result.setLikeCount(redisCount.hGet(USER_COUNT_KEY + result.getId(), "like"));
+        result.setCollectCount(redisCount.hGet(USER_COUNT_KEY + result.getId(), "collect"));
+        result.setUsefulCount(redisCount.hGet(USER_COUNT_KEY + result.getId(), "useful"));
         return result;
     }
 
@@ -152,7 +156,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             userDO = baseMapper.selectOne(Wrappers.lambdaQuery(UserDO.class)
                     .eq(UserDO::getUsername, requestParam.getUsername()));
             stringRedisTemplate.opsForValue().set(USER_INFO_KEY + requestParam.getUsername(), JSON.toJSONString(userDO));
-            afterRegistry(1L, EntityTypeEnum.USER, 0L, userDO.getId(), 1);
+            afterRegistry(SYSTEM_MESSAGE_ID, EntityTypeEnum.USER, 0L, userDO.getId());
         } catch (DuplicateKeyException ex) {
             throw new ClientException(USER_EXIST);
         } finally {
@@ -254,7 +258,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         stringRedisTemplate.opsForValue().set(USER_INFO_KEY + requestParam.getNewUsername(), JSON.toJSONString(newUserDO));
     }
 
-    public void afterRegistry(Long userId, EntityTypeEnum entityType, Long entityId, Long entityUserId, Integer isPositive) {
+    public void afterRegistry(Long userId, EntityTypeEnum entityType, Long entityId, Long entityUserId) {
         HashMap<String, Object> data = new HashMap<>();
         data.put("content", "欢迎注册源智答小程序");
         MqEvent event = MqEvent.builder()
@@ -263,7 +267,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
                 .userId(userId)
                 .entityId(entityId)
                 .entityUserId(entityUserId)
-                .isPositive(isPositive)
                 .data(data)
                 .build();
         producer.send(event);

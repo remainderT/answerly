@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.Date;
 
 /**
- * 问题分页查询响应
+ * 题目分页查询响应
  */
 @Data
 public class QuestionPageRespDTO {

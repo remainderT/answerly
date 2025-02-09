@@ -30,9 +30,14 @@ public class UserActionDO extends BaseDO {
     private Long userId;
 
     /**
-     * 问题id
+     * 实体类型
      */
-    private Long questionId;
+    private String entityType;
+
+    /**
+     * 实体id
+     */
+    private Long entityId;
 
     /**
      * 是否收藏
@@ -48,6 +53,11 @@ public class UserActionDO extends BaseDO {
      * 是否评论
      */
     private Integer commentStat;
+
+    /**
+     * 消息id
+     */
+    private Long messageId;
 
     /**
      * 上次浏览时间

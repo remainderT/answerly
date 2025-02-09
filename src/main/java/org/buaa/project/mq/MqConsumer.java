@@ -9,10 +9,12 @@ import org.buaa.project.common.enums.MessageTypeEnum;
 import org.buaa.project.dao.entity.CommentDO;
 import org.buaa.project.dao.entity.MessageDO;
 import org.buaa.project.dao.entity.QuestionDO;
+import org.buaa.project.dao.entity.UserActionDO;
 import org.buaa.project.dao.entity.UserDO;
 import org.buaa.project.dao.mapper.CommentMapper;
 import org.buaa.project.dao.mapper.MessageMapper;
 import org.buaa.project.dao.mapper.QuestionMapper;
+import org.buaa.project.dao.mapper.UserActionMapper;
 import org.buaa.project.dao.mapper.UserMapper;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.RecordId;
@@ -39,6 +41,8 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
     private final QuestionMapper questionMapper;
 
     private final CommentMapper commentMapper;
+
+    private final UserActionMapper userActionMapper;
 
     @Override
     public void onMessage(MapRecord<String, String, String> message) {
@@ -70,49 +74,55 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
             UserDO from = userMapper.selectById(event.getUserId());
             CommentDO comment = null;
             QuestionDO question = null;
-            UserDO to = userMapper.selectById(event.getEntityUserId());
             String content = null;
+            UserDO to = userMapper.selectById(event.getEntityUserId());
             MessageTypeEnum messageType = event.getMessageType();
-            if (event.getIsPositive() == 1) {
+            Boolean isPositive = (Boolean) event.getData().get("isPositive");
+            // 序列化问题
+            UserActionDO userActionDO = userActionMapper.selectById(event.getData().get("userActionId").toString());
+            if (!Objects.equals(isPositive, false)) {
                 switch (messageType) {
                     case LIKE:
                         if (event.getEntityType().equals(EntityTypeEnum.COMMENT)) {
                             comment = commentMapper.selectById(event.getEntityId());
-                            comment.setLikeCount(comment.getLikeCount() + 1);
                             commentMapper.updateById(comment);
                             question = questionMapper.selectById(comment.getQuestionId());
                             content = "(%s)点赞了你在(%s)问题下的(%s)评论".formatted(from.getUsername(), question.getTitle(), comment.getContent());
                         } else if (event.getEntityType().equals(EntityTypeEnum.QUESTION)) {
                             question = questionMapper.selectById(event.getEntityId());
-                            question.setLikeCount(question.getLikeCount() + 1);
                             questionMapper.updateById(question);
                             content = "(%s)点赞了你的(%s)问题".formatted(from.getUsername(), question.getTitle());
                         }
                         to.setLikeCount(to.getLikeCount() + 1);
                         userMapper.updateById(to);
                         break;
+
                     case COMMENT:
                         if (event.getEntityType().equals(EntityTypeEnum.COMMENT)) {
                             comment = commentMapper.selectById(event.getEntityId());
                             question = questionMapper.selectById(comment.getQuestionId());
-                            content = "(%s)回复了你在(%s)问题下的(%s)评论(%s)".formatted(from.getUsername(), question.getTitle(), comment.getContent(), event.getData().get("content"));
+                            content = "(%s)回复了你在(%s)问题下的(%s)评论".formatted(from.getUsername(), question.getTitle(), comment.getContent());
                         } else if (event.getEntityType().equals(EntityTypeEnum.QUESTION)) {
                             question = questionMapper.selectById(event.getEntityId());
-                            content = "(%s)评论了你的(%s)问题(%s)".formatted(from.getUsername(), question.getTitle(), event.getData().get("content"));
+                            content = "(%s)评论了你的(%s)问题".formatted(from.getUsername(), question.getTitle());
                         }
                         break;
+
                     case COLLECT:
                         question = questionMapper.selectById(event.getEntityId());
-                        content = "(%s)收藏了你的(%s)问题".formatted(from.getUsername(), question);
+                        content = "(%s)收藏了你的(%s)问题".formatted(from.getUsername(), question.getTitle());
                         break;
+
                     case USEFUL:
                         comment = commentMapper.selectById(event.getEntityId());
                         question = questionMapper.selectById(event.getEntityId());
                         content = "(%s)认为你在(%s)问题下的(%s)评论有用".formatted(from.getUsername(), question.getTitle(), comment.getContent());
                         break;
+
                     case SYSTEM:
                         content = event.getData().get("content").toString();
                         break;
+
                     default:
                         break;
                 }
@@ -123,40 +133,14 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
                         .content(content)
                         .build();
                 messageMapper.insert(messageDO);
-            }
-            else if (event.getIsPositive() == 0) {
-                switch (messageType) {
-                    case LIKE:
-                        if (event.getEntityType().equals(EntityTypeEnum.COMMENT)) {
-                            comment = commentMapper.selectById(event.getEntityId());
-                            question = questionMapper.selectById(comment.getQuestionId());
-                        } else if (event.getEntityType().equals(EntityTypeEnum.QUESTION)) {
-                            question = questionMapper.selectById(event.getEntityId());
-                            question.setLikeCount(question.getLikeCount() + 1);
-                            questionMapper.updateById(question);
-                        }
-                        to.setLikeCount(to.getLikeCount() - 1);
-                        userMapper.updateById(to);
-                        break;
-                    case COMMENT:
-                        if (event.getEntityType().equals(EntityTypeEnum.COMMENT)) {
-                            question = questionMapper.selectById(event.getEntityId());
-                        } else if (event.getEntityType().equals(EntityTypeEnum.QUESTION)) {
-                            String title = questionMapper.selectById(event.getEntityId()).getTitle();
-                        }
-                        break;
-                    case COLLECT:
-                        question = questionMapper.selectById(event.getEntityId());
-                        break;
-                    case USEFUL:
-                        comment = commentMapper.selectById(event.getEntityId());
-                        question = questionMapper.selectById(event.getEntityId());
-                        break;
-                    case SYSTEM:
-                        break;
-                    default:
-                        break;
-                }
+
+                userActionDO.setMessageId(messageDO.getId());
+                userActionMapper.updateById(userActionDO);
+            } else {
+                // 删除消息
+                MessageDO messageDO = messageMapper.selectById(userActionDO.getMessageId());
+                messageDO.setDelFlag(1);
+                messageMapper.updateById(messageDO);
             }
         }
     }

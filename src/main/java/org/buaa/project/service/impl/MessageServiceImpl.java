@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 点赞接口实现层
+ * 消息接口实现层
  */
 @Service
 @RequiredArgsConstructor
@@ -69,7 +69,6 @@ public class MessageServiceImpl  extends ServiceImpl<MessageMapper, MessageDO> i
 
     @Override
     public IPage<MessagePageRespDTO> pageMessage(MessageListPageReqDTO requestParam) {
-
         LambdaQueryWrapper<MessageDO> queryWrapper = Wrappers.lambdaQuery(MessageDO.class)
                 .eq(MessageDO::getToId, UserContext.getUserId())
                 .eq(MessageDO::getType, requestParam.getType())

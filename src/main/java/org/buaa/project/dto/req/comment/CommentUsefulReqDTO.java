@@ -13,8 +13,4 @@ public class CommentUsefulReqDTO {
      */
     private Long id;
 
-    /**
-     * 是否有用
-     */
-    private Integer isUseful;
 }

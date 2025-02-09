@@ -3,18 +3,18 @@ package org.buaa.project.dto.req.question;
 import lombok.Data;
 
 /**
- * 收藏问题请求参数
+ * 收藏题目请求参数
  */
 @Data
 public class QuestionCollectReqDTO {
 
     /**
-     * 问题id
+     * 题目id
      */
     private Long id;
 
     /**
-     * 是否收藏
+     * 题目所有者id
      */
-    private Integer isCollect;
+    private Long entityUserId;
 }

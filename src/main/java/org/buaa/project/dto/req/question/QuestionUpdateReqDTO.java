@@ -3,13 +3,13 @@ package org.buaa.project.dto.req.question;
 import lombok.Data;
 
 /**
- * 问题修改请求参数
+ * 修改题目请求参数
  */
 @Data
 public class QuestionUpdateReqDTO {
 
     /**
-     * 需要修改的问题id
+     * id
      */
     private Long id;
 

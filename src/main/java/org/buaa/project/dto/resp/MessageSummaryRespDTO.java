@@ -14,5 +14,5 @@ public class MessageSummaryRespDTO {
     /**
      * 消息大致信息
      */
-    List<HashMap<String, Object>> messageSummary;
+    private List<HashMap<String, Object>> messageSummary;
 }
