@@ -1,6 +1,7 @@
 package org.buaa.project.mq;
 
 import com.alibaba.fastjson2.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.buaa.project.common.convention.exception.ServiceException;
@@ -9,12 +10,10 @@ import org.buaa.project.common.enums.MessageTypeEnum;
 import org.buaa.project.dao.entity.CommentDO;
 import org.buaa.project.dao.entity.MessageDO;
 import org.buaa.project.dao.entity.QuestionDO;
-import org.buaa.project.dao.entity.UserActionDO;
 import org.buaa.project.dao.entity.UserDO;
 import org.buaa.project.dao.mapper.CommentMapper;
 import org.buaa.project.dao.mapper.MessageMapper;
 import org.buaa.project.dao.mapper.QuestionMapper;
-import org.buaa.project.dao.mapper.UserActionMapper;
 import org.buaa.project.dao.mapper.UserMapper;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.RecordId;
@@ -41,8 +40,6 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
     private final QuestionMapper questionMapper;
 
     private final CommentMapper commentMapper;
-
-    private final UserActionMapper userActionMapper;
 
     @Override
     public void onMessage(MapRecord<String, String, String> message) {
@@ -78,8 +75,6 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
             UserDO to = userMapper.selectById(event.getEntityUserId());
             MessageTypeEnum messageType = event.getMessageType();
             Boolean isPositive = (Boolean) event.getData().get("isPositive");
-            // 序列化问题
-            UserActionDO userActionDO = userActionMapper.selectById(event.getData().get("userActionId").toString());
             if (!Objects.equals(isPositive, false)) {
                 switch (messageType) {
                     case LIKE:
@@ -101,10 +96,10 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
                         if (event.getEntityType().equals(EntityTypeEnum.COMMENT)) {
                             comment = commentMapper.selectById(event.getEntityId());
                             question = questionMapper.selectById(comment.getQuestionId());
-                            content = "(%s)回复了你在(%s)问题下的(%s)评论".formatted(from.getUsername(), question.getTitle(), comment.getContent());
+                            content = "(%s)回复了你在(%s)问题下的(%s)评论(%s)".formatted(from.getUsername(), question.getTitle(), comment.getContent(), event.getData().get("comment"));
                         } else if (event.getEntityType().equals(EntityTypeEnum.QUESTION)) {
                             question = questionMapper.selectById(event.getEntityId());
-                            content = "(%s)评论了你的(%s)问题".formatted(from.getUsername(), question.getTitle());
+                            content = "(%s)评论了你的(%s)问题(%s)".formatted(from.getUsername(), question.getTitle(), event.getData().get("comment"));
                         }
                         break;
 
@@ -131,14 +126,16 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
                         .toId(event.getEntityUserId())
                         .type(event.getMessageType().toString())
                         .content(content)
+                        .generateId(event.getGenerateId())
                         .build();
                 messageMapper.insert(messageDO);
 
-                userActionDO.setMessageId(messageDO.getId());
-                userActionMapper.updateById(userActionDO);
             } else {
-                // 删除消息
-                MessageDO messageDO = messageMapper.selectById(userActionDO.getMessageId());
+                LambdaQueryWrapper<MessageDO> queryWrapper = new LambdaQueryWrapper<MessageDO>()
+                        .eq(MessageDO::getType, event.getMessageType().toString())
+                        .eq(MessageDO::getGenerateId, event.getGenerateId())
+                        .eq(MessageDO::getDelFlag, 0);
+                MessageDO messageDO = messageMapper.selectOne(queryWrapper);
                 messageDO.setDelFlag(1);
                 messageMapper.updateById(messageDO);
             }

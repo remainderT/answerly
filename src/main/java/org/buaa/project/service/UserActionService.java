@@ -13,9 +13,9 @@ public interface UserActionService extends IService<UserActionDO> {
     UserActionDO getUserAction(Long userId, EntityTypeEnum entityType, Long entityId);
 
     /**
-     * 用户行为： 点赞、收藏、评论 等
+     * 用户行为： 点赞、收藏、认为有用
      */
-    void userAction(Long userId, EntityTypeEnum entityType, Long entityId, Long entityUserId, UserActionTypeEnum actionType);
+    void collectAndLikeAndUseful(Long userId, EntityTypeEnum entityType, Long entityId, Long entityUserId, UserActionTypeEnum actionType);
 
     /**
      * 更新最后一次浏览时间

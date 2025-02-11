@@ -43,6 +43,11 @@ public class MessageDO extends BaseDO {
     private String content;
 
     /**
+     * 生成消息的id
+     */
+    private Long generateId;
+
+    /**
      * 消息状态 (0-未读; 1-已读; 2-删除)
      */
     private Integer status;

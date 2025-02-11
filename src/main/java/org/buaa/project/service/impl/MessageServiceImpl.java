@@ -58,7 +58,7 @@ public class MessageServiceImpl  extends ServiceImpl<MessageMapper, MessageDO> i
             messageSummary.put("type", messageType);
             messageSummary.put("totalCount", totalCount);
             messageSummary.put("unreadCount", unreadCount);
-            messageSummary.put("firstUnreadMessage", firstMessage);
+            messageSummary.put("firstMessage", firstMessage);
             messageSummaryList.add(messageSummary);
         }
 

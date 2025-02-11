@@ -45,14 +45,14 @@ public class UserActionDO extends BaseDO {
     private Integer collectStat;
 
     /**
+     * 是否认为有用
+     */
+    private Integer usefulStat;
+
+    /**
      * 是否点赞
      */
     private Integer likeStat;
-
-    /**
-     * 是否评论
-     */
-    private Integer commentStat;
 
     /**
      * 消息id

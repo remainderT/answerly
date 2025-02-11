@@ -6,7 +6,9 @@ public enum UserActionTypeEnum {
 
     COMMENT( "comment"),
 
-    LIKE( "like");
+    LIKE( "like"),
+
+    USEFUL( "useful");
 
     private final String type;
 

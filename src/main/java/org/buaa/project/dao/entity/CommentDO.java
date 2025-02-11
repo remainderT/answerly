@@ -9,53 +9,54 @@ import org.buaa.project.toolkit.sensitive.SensitiveField;
 @TableName("comment")
 public class CommentDO extends BaseDO {
     /**
-     * ID - unique identifier for each answer
+     * ID - unique identifier for each comment
      */
     private Long id;
 
     /**
-     * user_id - the ID of the user who posted the answer
+     * user_id - the ID of the user who posted the comment
      */
     private Long userId;
 
     /**
-     * username - the username of the user who posted the answer
+     * username - the username of the user who posted the comment
      */
     private String username;
 
     /**
-     * question_id - the ID of the question this answer responds to
+     * question_id - the ID of the question this comment responds to
      */
     private Long questionId;
 
     /**
-     * top_comment_id - the ID of the top comment, if this answer is a reply to a comment
+     * top_comment_id - the ID of the top comment, if this comment is a reply to a comment
      */
     private Long topCommentId;
 
     /**
-     *  parent_comment_id - the ID of the parent comment, if this answer is a reply to a comment
+     *  parent_comment_id - the ID of the parent comment, if this comment is a reply to a comment
      */
     private Long parentCommentId;
 
     /**
-     * content - the content of the answer, with a maximum length of 1024 characters
+     * content - the content of the comment, with a maximum length of 1024 characters
      */
     @SensitiveField
     private String content;
 
     /**
-     * images - paths to images associated with the answer, separated by commas, with a maximum of 9 images
+     * images - paths to images associated with the comment, separated by commas, with a maximum of 9 images
      */
     private String images;
 
     /**
-     * like_count - the count of likes this answer has received, default is 0
+     * like_count - the count of likes this comment has received, default is 0
      */
     private Integer likeCount;
 
     /**
-     * useful - indicates if the answer is marked as useful, 1 for true, 0 for false
+     * useful - indicates if the comment is marked as useful, 1 for true, 0 for false
      */
     private Integer useful;
+
 }

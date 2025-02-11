@@ -7,9 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.buaa.project.common.enums.EntityTypeEnum;
 import org.buaa.project.common.enums.MessageTypeEnum;
 import org.buaa.project.common.enums.UserActionTypeEnum;
-import org.buaa.project.dao.entity.CommentDO;
 import org.buaa.project.dao.entity.UserActionDO;
-import org.buaa.project.dao.mapper.CommentMapper;
 import org.buaa.project.dao.mapper.UserActionMapper;
 import org.buaa.project.mq.MqEvent;
 import org.buaa.project.mq.MqProducer;
@@ -35,8 +33,6 @@ public class UserActionServiceImpl extends ServiceImpl<UserActionMapper, UserAct
 
     private final RedisCount redisCount;
 
-    private final CommentMapper commentMapper;
-
     @Override
     public UserActionDO getUserAction(Long userId, EntityTypeEnum entityType, Long entityId) {
         LambdaQueryWrapper<UserActionDO> queryWrapper = Wrappers.lambdaQuery(UserActionDO.class)
@@ -44,7 +40,16 @@ public class UserActionServiceImpl extends ServiceImpl<UserActionMapper, UserAct
                 .eq(UserActionDO::getEntityId, entityId)
                 .eq(UserActionDO::getEntityType, entityType);
 
-        return baseMapper.selectOne(queryWrapper);
+        UserActionDO userActionDO =  baseMapper.selectOne(queryWrapper);
+        if (userActionDO == null) {
+            userActionDO = UserActionDO.builder()
+                    .userId(userId)
+                    .entityType(entityType.type())
+                    .entityId(entityId)
+                    .build();
+            baseMapper.insert(userActionDO);
+        }
+        return userActionDO;
     }
 
     @Override
@@ -70,7 +75,7 @@ public class UserActionServiceImpl extends ServiceImpl<UserActionMapper, UserAct
     }
 
     @Override
-    public void userAction(Long userId, EntityTypeEnum entityType, Long entityId, Long entityUserId, UserActionTypeEnum actionType) {
+    public void collectAndLikeAndUseful(Long userId, EntityTypeEnum entityType, Long entityId, Long entityUserId, UserActionTypeEnum actionType) {
         UserActionDO userAction = getUserAction(userId, entityType, entityId);
         HashMap<String, Object> data = new HashMap<>();
         MessageTypeEnum messageType = null;
@@ -95,16 +100,11 @@ public class UserActionServiceImpl extends ServiceImpl<UserActionMapper, UserAct
                 redisCount.hIncr(USER_COUNT_KEY + userId, "collect", isPositive ? 1 : -1);
                 break;
 
-            case COMMENT:
-                messageType = MessageTypeEnum.COMMENT;
-                isPositive = userAction.getCommentStat() == 0;
-                userAction.setCommentStat(isPositive ? 1 : 0);
-                if (entityType == EntityTypeEnum.QUESTION) {
-                    redisCount.hIncr(QUESTION_COUNT_KEY + entityId, "comment", isPositive ? 1 : -1);
-                } else {
-                    CommentDO comment = commentMapper.selectById(entityId);
-                    redisCount.hIncr(COMMENT_COUNT_KEY + comment.getQuestionId(), "comment", isPositive ? 1 : -1);
-                }
+            case USEFUL:
+                messageType = MessageTypeEnum.USEFUL;
+                isPositive = userAction.getUsefulStat() == 0;
+                userAction.setUsefulStat(isPositive ? 1 : 0);
+                redisCount.hIncr(USER_COUNT_KEY + entityUserId, "useful", isPositive ? 1 : -1);
                 break;
 
             default:
@@ -112,7 +112,6 @@ public class UserActionServiceImpl extends ServiceImpl<UserActionMapper, UserAct
         }
         baseMapper.updateById(userAction);
         data.put("isPositive", isPositive);
-        data.put("userActionId", userAction.getId());
 
         MqEvent event = MqEvent.builder()
                 .messageType(messageType)
@@ -120,6 +119,7 @@ public class UserActionServiceImpl extends ServiceImpl<UserActionMapper, UserAct
                 .userId(userId)
                 .entityId(entityId)
                 .entityUserId(entityUserId)
+                .generateId(userAction.getId())
                 .data(data)
                 .build();
         producer.send(event);

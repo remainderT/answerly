@@ -267,6 +267,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
                 .userId(userId)
                 .entityId(entityId)
                 .entityUserId(entityUserId)
+                .generateId(0L)
                 .data(data)
                 .build();
         producer.send(event);

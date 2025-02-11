@@ -41,6 +41,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.buaa.project.common.consts.RedisCacheConstants.COMMENT_COUNT_KEY;
+import static org.buaa.project.common.consts.RedisCacheConstants.QUESTION_COUNT_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_COUNT_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_INFO_KEY;
 import static org.buaa.project.common.enums.QAErrorCodeEnum.COMMENT_ACCESS_CONTROL_ERROR;
@@ -67,24 +68,22 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
     public void likeComment(CommentLikeReqDTO requestParam) {
         checkCommentExist(requestParam.getId());
 
-        userActionService.userAction(UserContext.getUserId(), EntityTypeEnum.COMMENT, requestParam.getId(), requestParam.getEntityUserId(), UserActionTypeEnum.LIKE);
+        userActionService.collectAndLikeAndUseful(UserContext.getUserId(), EntityTypeEnum.COMMENT, requestParam.getId(), requestParam.getEntityUserId(), UserActionTypeEnum.LIKE);
     }
 
     @Override
     public void uploadComment(CommentUploadReqDTO requestParam) {
-        CommentDO CommentDO = BeanUtil.copyProperties(requestParam, CommentDO.class);
-        CommentDO.setUserId(UserContext.getUserId());
-        CommentDO.setUsername(UserContext.getUsername());
+        CommentDO commentDO = BeanUtil.copyProperties(requestParam, CommentDO.class);
+        Long questionId = commentDO.getQuestionId();
+        questionService.checkQuestionExist(questionId);
 
-        baseMapper.insert(CommentDO);
-        if (CommentDO.getParentCommentId() == 0) {
-            Long entityUserId = questionService.getUserIdByQuestionId(CommentDO.getQuestionId());
-            userActionService.userAction(UserContext.getUserId(), EntityTypeEnum.QUESTION, CommentDO.getQuestionId(), entityUserId, UserActionTypeEnum.COMMENT);
-        } else {
-            Long entityUserId = baseMapper.selectById(CommentDO.getParentCommentId()).getUserId();
-            userActionService.userAction(UserContext.getUserId(), EntityTypeEnum.COMMENT, CommentDO.getParentCommentId(), entityUserId, UserActionTypeEnum.COMMENT);
-        }
+        commentDO.setUserId(UserContext.getUserId());
+        commentDO.setUsername(UserContext.getUsername());
 
+        baseMapper.insert(commentDO);
+        redisCount.hIncr(QUESTION_COUNT_KEY + questionId, "comment", 1);
+
+        afterComment(commentDO, true);
     }
 
     @Override
@@ -94,46 +93,29 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
             checkCommentOwner(id);
         }
 
-        CommentDO CommentDO = baseMapper.selectById(id);
-        CommentDO.setDelFlag(1);
-        baseMapper.updateById(CommentDO);
+        CommentDO commentDO = baseMapper.selectById(id);
+        commentDO.setDelFlag(1);
+        baseMapper.updateById(commentDO);
 
-        int likeCount = redisCount.hGet(COMMENT_COUNT_KEY + CommentDO.getUserId(), "like");
-        redisCount.hIncr(USER_COUNT_KEY + CommentDO.getUserId(), "like", -likeCount);
+        int likeCount = redisCount.hGet(COMMENT_COUNT_KEY + commentDO.getUserId(), "like");
+        redisCount.hIncr(USER_COUNT_KEY + commentDO.getUserId(), "like", -likeCount);
+        redisCount.hIncr(QUESTION_COUNT_KEY + commentDO.getQuestionId(), "comment", -1);
 
-        if (CommentDO.getParentCommentId() == 0) {
-            Long entityUserId = questionService.getUserIdByQuestionId(CommentDO.getQuestionId());
-            userActionService.userAction(CommentDO.getUserId(), EntityTypeEnum.QUESTION, CommentDO.getQuestionId(), entityUserId, UserActionTypeEnum.COMMENT);
-        } else {
-            Long entityUserId = baseMapper.selectById(CommentDO.getParentCommentId()).getUserId();
-            userActionService.userAction(CommentDO.getUserId(), EntityTypeEnum.COMMENT, CommentDO.getParentCommentId(), entityUserId, UserActionTypeEnum.COMMENT);
-        }
+        afterComment(commentDO, false);
     }
 
     @Override
     public void markUsefulComment(CommentUsefulReqDTO requestParam) {
         checkCommentExist(requestParam.getId());
 
-        CommentDO CommentDO = baseMapper.selectById(requestParam.getId());
-        questionService.checkQuestionOwner(CommentDO.getQuestionId());
-        boolean isPositive = CommentDO.getUseful() == 0;
-        CommentDO.setUseful(isPositive ? 1 : 0);
-        baseMapper.updateById(CommentDO);
+        CommentDO commentDO = baseMapper.selectById(requestParam.getId());
+        questionService.checkQuestionOwner(commentDO.getQuestionId());
+        boolean isPositive = commentDO.getUseful() == 0;
+        commentDO.setUseful(isPositive ? 1 : 0);
+        baseMapper.updateById(commentDO);
 
-        redisCount.hIncr(USER_COUNT_KEY + CommentDO.getUserId(), "useful", isPositive ? 1 : -1);
+        userActionService.collectAndLikeAndUseful(UserContext.getUserId(), EntityTypeEnum.COMMENT, requestParam.getId(), commentDO.getUserId(), UserActionTypeEnum.USEFUL);
 
-        HashMap<String, Object> data = new HashMap<>();
-        data.put("isPositive", isPositive);
-
-        MqEvent event = MqEvent.builder()
-                .messageType(MessageTypeEnum.USEFUL)
-                .entityType(EntityTypeEnum.COMMENT)
-                .userId(UserContext.getUserId())
-                .entityId(CommentDO.getId())
-                .entityUserId(CommentDO.getUserId())
-                .data(data)
-                .build();
-        producer.send(event);
     }
 
     @Override
@@ -155,14 +137,14 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
                 .eq(CommentDO::getUserId, UserContext.getUserId());
         IPage<CommentDO> page = baseMapper.selectPage(requestParam, queryWrapper);
 
-        List<CommentPageRespDTO> CommentPageRespDTOList = page.getRecords().stream().map(CommentDO -> {
-            String username = CommentDO.getUsername();
+        List<CommentPageRespDTO> CommentPageRespDTOList = page.getRecords().stream().map(commentDO -> {
+            String username = commentDO.getUsername();
             String userJson = stringRedisTemplate.opsForValue().get(USER_INFO_KEY + username);
             UserDO userDO = JSON.parseObject(userJson, UserDO.class);
-            CommentPageRespDTO CommentPageRespDTO = BeanUtil.copyProperties(CommentDO, CommentPageRespDTO.class);
+            CommentPageRespDTO CommentPageRespDTO = BeanUtil.copyProperties(commentDO, CommentPageRespDTO.class);
             CommentPageRespDTO.setAvatar(userDO.getAvatar());
-            CommentPageRespDTO.setLikeCount(redisCount.hGet(COMMENT_COUNT_KEY + CommentDO.getId(), "like"));
-            String likeStatus = userActionService.getUserAction(UserContext.getUserId(), EntityTypeEnum.QUESTION, CommentDO.getId()).getLikeStat() == 1 ?  "已点赞" : "未点赞";
+            CommentPageRespDTO.setLikeCount(redisCount.hGet(COMMENT_COUNT_KEY + commentDO.getId(), "like"));
+            String likeStatus = userActionService.getUserAction(UserContext.getUserId(), EntityTypeEnum.QUESTION, commentDO.getId()).getLikeStat() == 1 ?  "已点赞" : "未点赞";
             CommentPageRespDTO.setLikeStatus(likeStatus);
             return CommentPageRespDTO;
         }).collect(Collectors.toList());
@@ -230,19 +212,46 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
         return commentPageRespDTO;
     }
 
+    public void afterComment(CommentDO commentDO, boolean isPositive) {
+        Long entityUserId;
+        EntityTypeEnum entityType;
+        if (commentDO.getParentCommentId() == 0) {
+            entityUserId = questionService.getUserIdByQuestionId(commentDO.getQuestionId());
+            entityType = EntityTypeEnum.QUESTION;
+        } else {
+            entityUserId = baseMapper.selectById(commentDO.getParentCommentId()).getUserId();
+            entityType = EntityTypeEnum.COMMENT;
+        }
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("isPositive", isPositive);
+        data.put("comment", commentDO.getContent());
+
+        MqEvent event = MqEvent.builder()
+                .messageType(MessageTypeEnum.COMMENT)
+                .entityType(entityType)
+                .userId(commentDO.getUserId())
+                .entityId(commentDO.getQuestionId())
+                .entityUserId(entityUserId)
+                .generateId(commentDO.getId())
+                .data(data)
+                .build();
+        producer.send(event);
+
+    }
+
     @Override
     public void checkCommentExist(Long id) {
-        CommentDO Comment = baseMapper.selectById(id);
-        if (Comment == null || Comment.getDelFlag() != 0) {
+        CommentDO commentDO = baseMapper.selectById(id);
+        if (commentDO == null || commentDO.getDelFlag() != 0) {
             throw new ClientException(COMMENT_NULL);
         }
     }
 
     @Override
     public void checkCommentOwner(Long id) {
-        CommentDO Comment = baseMapper.selectById(id);
+        CommentDO commentDO = baseMapper.selectById(id);
         long userId = UserContext.getUserId();
-        if (!Comment.getUserId().equals(userId)) {
+        if (!commentDO.getUserId().equals(userId)) {
             throw new ClientException(COMMENT_ACCESS_CONTROL_ERROR);
         }
     }

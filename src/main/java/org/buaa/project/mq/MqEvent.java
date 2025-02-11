@@ -41,6 +41,11 @@ public class MqEvent {
     private Long entityUserId;
 
     /**
+     * 产生消息的数据的id
+     */
+    private Long generateId;
+
+    /**
      * 更多信息
      */
     private HashMap<String, Object> data;

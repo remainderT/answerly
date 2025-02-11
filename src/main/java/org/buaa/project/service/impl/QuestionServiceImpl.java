@@ -88,7 +88,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
     public void likeQuestion(QuestionLikeReqDTO requestParam) {
         checkQuestionExist(requestParam.getId());
 
-        userActionService.userAction(UserContext.getUserId(), EntityTypeEnum.QUESTION, requestParam.getId(), requestParam.getEntityUserId(), UserActionTypeEnum.LIKE);
+        userActionService.collectAndLikeAndUseful(UserContext.getUserId(), EntityTypeEnum.QUESTION, requestParam.getId(), requestParam.getEntityUserId(), UserActionTypeEnum.LIKE);
     }
 
     @Override
@@ -192,7 +192,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
     public void collectQuestion(QuestionCollectReqDTO requestParam) {
         checkQuestionExist(requestParam.getId());
 
-        userActionService.userAction(UserContext.getUserId(), EntityTypeEnum.QUESTION, requestParam.getId(), requestParam.getEntityUserId(), UserActionTypeEnum.COLLECT);
+        userActionService.collectAndLikeAndUseful(UserContext.getUserId(), EntityTypeEnum.QUESTION, requestParam.getId(), requestParam.getEntityUserId(), UserActionTypeEnum.COLLECT);
     }
 
     @Override
