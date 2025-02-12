@@ -61,7 +61,7 @@ public interface QuestionService extends IService<QuestionDO> {
     /**
      * 查询热门题目
      */
-    List<QuestionPageRespDTO> findHotQuestion(Integer category);
+    List<QuestionPageRespDTO> findHotQuestion(Long categoryId);
 
     /**
      * 检查题目是否存在

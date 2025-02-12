@@ -65,4 +65,9 @@ public class RedisCacheConstants {
      */
     public static final String USER_LOGIN_CAPTCHA_KEY = "answerly:user:login:captcha:";
 
+    /**
+     * 热门问题
+     */
+    public static final String HOT_QUESTION_KEY = "answerly:question:hot:";
+
 }

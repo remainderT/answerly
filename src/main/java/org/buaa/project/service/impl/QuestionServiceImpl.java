@@ -31,11 +31,14 @@ import org.buaa.project.service.QuestionService;
 import org.buaa.project.service.UserActionService;
 import org.buaa.project.toolkit.RedisCount;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
+import static org.buaa.project.common.consts.RedisCacheConstants.HOT_QUESTION_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.QUESTION_COUNT_KEY;
 import static org.buaa.project.common.enums.QAErrorCodeEnum.QUESTION_ACCESS_CONTROL_ERROR;
 import static org.buaa.project.common.enums.QAErrorCodeEnum.QUESTION_NULL;
@@ -50,6 +53,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
     private final UserActionMapper userActionMapper;
     private final UserActionService userActionService;
     private final RedisCount redisCount;
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Override
     public void uploadQuestion(QuestionUploadReqDTO requestParam) {
@@ -170,22 +174,17 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
     }
 
     @Override
-    public List<QuestionPageRespDTO> findHotQuestion(Integer category) {
-        //todo 修改热度值计算，暂时先根据like_count和view_count排序
-        LambdaQueryWrapper<QuestionDO> wrapper = Wrappers.lambdaQuery(QuestionDO.class)
-                .eq(QuestionDO::getCategoryId, category)
-                .orderByDesc(QuestionDO::getLikeCount)
-                .orderByDesc(QuestionDO::getViewCount)
-                .last("LIMIT 10");
-        List<QuestionDO> questionDOList = baseMapper.selectList(wrapper);
-
-        return questionDOList.stream()
-                .map(questionDO -> {
-                    QuestionPageRespDTO dto = new QuestionPageRespDTO();
-                    BeanUtils.copyProperties(questionDO, dto);
+    public List<QuestionPageRespDTO> findHotQuestion(Long categoryId) {
+        Set<String> topQuestions = stringRedisTemplate.opsForZSet().reverseRange(HOT_QUESTION_KEY + categoryId, 0, 9);
+        return baseMapper.selectList(new LambdaQueryWrapper<QuestionDO>()
+                .in(QuestionDO::getId, topQuestions)
+                .eq(QuestionDO::getDelFlag, 0))
+                .stream()
+                .map(each -> {
+                    QuestionPageRespDTO dto = BeanUtil.toBean(each, QuestionPageRespDTO.class);
+                    fillQuestionCount(dto);
                     return dto;
-                })
-                .toList();
+                }).toList();
     }
 
     @Override

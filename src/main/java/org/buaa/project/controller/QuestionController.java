@@ -92,8 +92,8 @@ public class QuestionController {
     /**
      * 查询热门题目
      */
-    @GetMapping("/api/answerly/v1/top-ten/{category}")
-    public Result<List<QuestionPageRespDTO>> findTopTenQuestion(@PathVariable("category") int category) {
+    @GetMapping("/api/answerly/v1/question/hot/{categoryId}")
+    public Result<List<QuestionPageRespDTO>> findHotQuestion(@PathVariable("categoryId") Long category) {
         return Results.success(questionService.findHotQuestion(category));
     }
 

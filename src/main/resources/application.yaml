@@ -65,3 +65,16 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: auto
+
+xxl:
+  job:
+    admin:
+      addresses: http://127.0.0.1:8089/xxl-job-admin
+    accessToken: default_token
+    executor:
+      appname: answerly
+      address: ""
+      ip: ""
+      port: 9998
+      logpath:
+      logretentiondays: 7
