@@ -163,21 +163,6 @@
             </plugin>
 
             <plugin>
-               <groupId>org.apache.maven.plugins</groupId>
-               <artifactId>maven-jar-plugin</artifactId>
-               <version>3.2.0</version>
-               <configuration>
-                   <archive>
-                       <manifest>
-                           <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                           <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-                           <mainClass>org.buaa.project.ProjectApplication</mainClass>
-                       </manifest>
-                   </archive>
-               </configuration>
-           </plugin>
-
-            <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
@@ -189,7 +174,6 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
 
