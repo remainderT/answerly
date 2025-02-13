@@ -38,8 +38,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static org.buaa.project.common.consts.RedisCacheConstants.ACTIVITY_SCORE_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.HOT_QUESTION_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.QUESTION_COUNT_KEY;
+import static org.buaa.project.common.consts.SystemConstants.QUESTION_SCORE;
 import static org.buaa.project.common.enums.QAErrorCodeEnum.QUESTION_ACCESS_CONTROL_ERROR;
 import static org.buaa.project.common.enums.QAErrorCodeEnum.QUESTION_NULL;
 
@@ -61,6 +63,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         question.setUserId(UserContext.getUserId());
         question.setUsername(UserContext.getUsername());
         baseMapper.insert(question);
+        redisCount.zIncr(ACTIVITY_SCORE_KEY, UserContext.getUserId().toString(), QUESTION_SCORE);
     }
 
     @Override

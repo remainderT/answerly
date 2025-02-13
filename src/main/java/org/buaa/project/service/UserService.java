@@ -6,8 +6,11 @@ import org.buaa.project.dao.entity.UserDO;
 import org.buaa.project.dto.req.user.UserLoginReqDTO;
 import org.buaa.project.dto.req.user.UserRegisterReqDTO;
 import org.buaa.project.dto.req.user.UserUpdateReqDTO;
+import org.buaa.project.dto.resp.UserActivityRankRespDTO;
 import org.buaa.project.dto.resp.UserLoginRespDTO;
 import org.buaa.project.dto.resp.UserRespDTO;
+
+import java.util.List;
 
 /**
  * 用户接口层
@@ -54,5 +57,14 @@ public interface UserService extends IService<UserDO> {
      */
     void update(UserUpdateReqDTO requestParam);
 
+    /**
+     * 用户活跃度排行榜
+     */
+    List<UserActivityRankRespDTO> activityRank();
+
+    /**
+     * 查询用户的活跃度
+     */
+    Integer activityScore();
 
 }

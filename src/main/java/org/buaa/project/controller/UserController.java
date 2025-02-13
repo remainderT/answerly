@@ -8,6 +8,7 @@ import org.buaa.project.common.convention.result.Results;
 import org.buaa.project.dto.req.user.UserLoginReqDTO;
 import org.buaa.project.dto.req.user.UserRegisterReqDTO;
 import org.buaa.project.dto.req.user.UserUpdateReqDTO;
+import org.buaa.project.dto.resp.UserActivityRankRespDTO;
 import org.buaa.project.dto.resp.UserActualRespDTO;
 import org.buaa.project.dto.resp.UserLoginRespDTO;
 import org.buaa.project.dto.resp.UserRespDTO;
@@ -20,6 +21,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 
 /**
@@ -104,6 +107,22 @@ public class UserController {
     public Result<Void> update(@RequestBody UserUpdateReqDTO requestParam) {
         userService.update(requestParam);
         return Results.success();
+    }
+
+    /**
+     * 用户活跃排行榜
+     */
+    @GetMapping("/api/answerly/v1/user/activity/rank")
+    public Result<List<UserActivityRankRespDTO>> rank() {
+        return Results.success(userService.activityRank());
+    }
+
+    /**
+     * 查看用户的活跃度
+     */
+    @GetMapping("/api/answerly/v1/user/activity/score")
+    public Result<Integer> activity() {
+        return Results.success(userService.activityScore());
     }
 
 }

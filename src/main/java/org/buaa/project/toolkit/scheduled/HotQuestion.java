@@ -18,6 +18,10 @@ import java.util.Set;
 
 import static org.buaa.project.common.consts.RedisCacheConstants.HOT_QUESTION_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.QUESTION_COUNT_KEY;
+import static org.buaa.project.common.consts.SystemConstants.COLLECT_WEIGHT;
+import static org.buaa.project.common.consts.SystemConstants.COMMENT_WEIGHT;
+import static org.buaa.project.common.consts.SystemConstants.LIKE_WEIGHT;
+import static org.buaa.project.common.consts.SystemConstants.VIEW_WEIGHT;
 
 @Component
 @RequiredArgsConstructor
@@ -30,10 +34,6 @@ public class HotQuestion {
 
     private final CategoryMapper categoryMapper;
 
-    private static final double WEIGHT_VIEW = 4.0; // 浏览量的权重
-    private static final double WEIGHT_LIKE = 1.0; // 点赞数的权重
-    private static final double WEIGHT_COLLECT = 1.0; // 收藏数的权重
-    private static final double WEIGHT_COMMENT = 1.0; // 评论数的权重
 
     @XxlJob("hotQuestion")
     public void hotQuestion() {
@@ -63,10 +63,10 @@ public class HotQuestion {
                 long updateAge = (new Date().getTime() - updateDate.getTime()) / (1000 * 3600 * 24 * 7);
 
                 // 计算文章的热度分值
-                double score = Math.log(viewCount + 1) * WEIGHT_VIEW
-                        + likeCount * WEIGHT_LIKE
-                        + collectCount * WEIGHT_COLLECT
-                        + Math.log(commentCount + 1) * WEIGHT_COMMENT
+                double score = Math.log(viewCount + 1) * VIEW_WEIGHT
+                        + likeCount * LIKE_WEIGHT
+                        + collectCount * COLLECT_WEIGHT
+                        + Math.log(commentCount + 1) * COMMENT_WEIGHT
                         / (1 + age / 2.0 + updateAge / 2.0);
 
                 stringRedisTemplate.opsForZSet().add(HOT_QUESTION_KEY + category.getId(), question.getId().toString(), score);

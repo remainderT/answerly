@@ -18,9 +18,14 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.HashMap;
 
+import static org.buaa.project.common.consts.RedisCacheConstants.ACTIVITY_SCORE_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.COMMENT_COUNT_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.QUESTION_COUNT_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_COUNT_KEY;
+import static org.buaa.project.common.consts.SystemConstants.COMMENT_SCORE;
+import static org.buaa.project.common.consts.SystemConstants.LIKE_SCORE;
+import static org.buaa.project.common.consts.SystemConstants.USEFUL_SCORE;
+import static org.buaa.project.common.consts.SystemConstants.VIEW_SCORE;
 
 /**
  * 用户行为接口实现
@@ -48,6 +53,7 @@ public class UserActionServiceImpl extends ServiceImpl<UserActionMapper, UserAct
                     .entityId(entityId)
                     .build();
             baseMapper.insert(userActionDO);
+            redisCount.zIncr(ACTIVITY_SCORE_KEY , userId.toString(), VIEW_SCORE);
         }
         return userActionDO;
     }
@@ -91,6 +97,7 @@ public class UserActionServiceImpl extends ServiceImpl<UserActionMapper, UserAct
                 } else {
                     redisCount.hIncr(COMMENT_COUNT_KEY + entityId, "like", isPositive ? 1 : -1);
                 }
+                redisCount.zIncr(ACTIVITY_SCORE_KEY , userId.toString(), isPositive ? LIKE_SCORE: -LIKE_SCORE);
                 break;
 
             case COLLECT:
@@ -98,6 +105,7 @@ public class UserActionServiceImpl extends ServiceImpl<UserActionMapper, UserAct
                 isPositive = userAction.getCollectStat() == 0;
                 userAction.setCollectStat(isPositive ? 1 : 0);
                 redisCount.hIncr(USER_COUNT_KEY + userId, "collect", isPositive ? 1 : -1);
+                redisCount.zIncr(ACTIVITY_SCORE_KEY , userId.toString(), isPositive ? COMMENT_SCORE: -COMMENT_SCORE);
                 break;
 
             case USEFUL:
@@ -105,6 +113,7 @@ public class UserActionServiceImpl extends ServiceImpl<UserActionMapper, UserAct
                 isPositive = userAction.getUsefulStat() == 0;
                 userAction.setUsefulStat(isPositive ? 1 : 0);
                 redisCount.hIncr(USER_COUNT_KEY + entityUserId, "useful", isPositive ? 1 : -1);
+                redisCount.zIncr(ACTIVITY_SCORE_KEY , userId.toString(), isPositive ? USEFUL_SCORE: -USEFUL_SCORE);
                 break;
 
             default:

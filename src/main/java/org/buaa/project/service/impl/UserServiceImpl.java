@@ -24,6 +24,7 @@ import org.buaa.project.dao.mapper.UserMapper;
 import org.buaa.project.dto.req.user.UserLoginReqDTO;
 import org.buaa.project.dto.req.user.UserRegisterReqDTO;
 import org.buaa.project.dto.req.user.UserUpdateReqDTO;
+import org.buaa.project.dto.resp.UserActivityRankRespDTO;
 import org.buaa.project.dto.resp.UserLoginRespDTO;
 import org.buaa.project.dto.resp.UserRespDTO;
 import org.buaa.project.mq.MqEvent;
@@ -43,11 +44,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static org.buaa.project.common.consts.MailSendConstants.EMAIL_SUFFIX;
+import static org.buaa.project.common.consts.RedisCacheConstants.ACTIVITY_SCORE_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_COUNT_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_INFO_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_LOGIN_CAPTCHA_KEY;
@@ -256,6 +261,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         UserDO newUserDO = baseMapper.selectOne(Wrappers.lambdaQuery(UserDO.class)
                 .eq(UserDO::getUsername, requestParam.getNewUsername()));
         stringRedisTemplate.opsForValue().set(USER_INFO_KEY + requestParam.getNewUsername(), JSON.toJSONString(newUserDO));
+    }
+
+    @Override
+    public List<UserActivityRankRespDTO> activityRank() {
+        Set<String> activeUsers = stringRedisTemplate.opsForZSet().reverseRange(ACTIVITY_SCORE_KEY, 0, 9);
+        if (activeUsers != null && !activeUsers.isEmpty()) {
+            return activeUsers.stream().map(userId -> {
+                UserDO userDO = baseMapper.selectById(userId);
+                UserActivityRankRespDTO result = new UserActivityRankRespDTO();
+                BeanUtils.copyProperties(userDO, result);
+                Double score = stringRedisTemplate.opsForZSet().score(ACTIVITY_SCORE_KEY, userId);
+                result.setActivity(score == null ? 0 : score.intValue());
+                return result;
+            }).toList();
+        }
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Integer activityScore() {
+        Double score = stringRedisTemplate.opsForZSet().score(ACTIVITY_SCORE_KEY, UserContext.getUserId().toString());
+        return score == null ? 0 : score.intValue();
     }
 
     public void afterRegistry(Long userId, EntityTypeEnum entityType, Long entityId, Long entityUserId) {

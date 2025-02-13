@@ -70,4 +70,9 @@ public class RedisCacheConstants {
      */
     public static final String HOT_QUESTION_KEY = "answerly:question:hot:";
 
+    /**
+     * 用户活跃度
+     */
+    public static final String ACTIVITY_SCORE_KEY = "answerly:user:activity:score:";
+
 }

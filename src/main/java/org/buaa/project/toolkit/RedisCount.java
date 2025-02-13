@@ -16,7 +16,7 @@ public class RedisCount {
     private final StringRedisTemplate stringRedisTemplate;
 
     /**
-     * 自增
+     * hash自增
      */
     public void hIncr(String key, String field, Integer cnt) {
         stringRedisTemplate.opsForHash().increment(key, field, cnt);
@@ -29,6 +29,13 @@ public class RedisCount {
         return Optional.ofNullable(stringRedisTemplate.opsForHash().get(key, field))
                 .map(value -> Integer.parseInt(value.toString()))
                 .orElse(0);
+    }
+
+    /**
+     * zset自增
+     */
+    public void zIncr(String key, String member, Integer cnt) {
+        stringRedisTemplate.opsForZSet().incrementScore(key, member, cnt);
     }
 
 }
