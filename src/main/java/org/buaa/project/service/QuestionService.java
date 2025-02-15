@@ -7,7 +7,6 @@ import org.buaa.project.dto.req.question.QuestionCollectPageReqDTO;
 import org.buaa.project.dto.req.question.QuestionCollectReqDTO;
 import org.buaa.project.dto.req.question.QuestionLikeReqDTO;
 import org.buaa.project.dto.req.question.QuestionMinePageReqDTO;
-import org.buaa.project.dto.req.question.QuestionPageReqDTO;
 import org.buaa.project.dto.req.question.QuestionRecentPageReqDTO;
 import org.buaa.project.dto.req.question.QuestionSolveReqDTO;
 import org.buaa.project.dto.req.question.QuestionUpdateReqDTO;
@@ -52,11 +51,6 @@ public interface QuestionService extends IService<QuestionDO> {
      * 查询题目详细信息
      */
     QuestionRespDTO findQuestionById(Long id);
-
-    /**
-     * 分页查询题目
-     */
-    IPage<QuestionPageRespDTO> pageQuestion(QuestionPageReqDTO requestParam);
 
     /**
      * 查询热门题目

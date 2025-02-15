@@ -18,7 +18,7 @@ public class QuestionPageReqDTO extends Page<QuestionDO> {
     /**
      * 搜索词
      */
-    private String search;
+    private String keyword;
 
     /**
      * 是否解决 0：未解决 1：已解决 2：全部

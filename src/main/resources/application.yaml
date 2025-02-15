@@ -22,6 +22,10 @@ spring:
       host: 127.0.0.1
       port: 6379
 
+  elasticsearch:
+    username: elastic
+    password: ysh030605
+
   mail:
     protocol: smtps
     host: smtp.163.com
@@ -78,3 +82,7 @@ xxl:
       port: 9998
       logpath:
       logretentiondays: 7
+
+elasticsearch:
+  host: localhost
+  index-name: question

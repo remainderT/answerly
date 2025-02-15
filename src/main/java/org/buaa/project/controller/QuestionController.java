@@ -13,8 +13,10 @@ import org.buaa.project.dto.req.question.QuestionPageReqDTO;
 import org.buaa.project.dto.req.question.QuestionSolveReqDTO;
 import org.buaa.project.dto.req.question.QuestionUpdateReqDTO;
 import org.buaa.project.dto.req.question.QuestionUploadReqDTO;
+import org.buaa.project.dto.resp.QuestionPageAllRespDTO;
 import org.buaa.project.dto.resp.QuestionPageRespDTO;
 import org.buaa.project.dto.resp.QuestionRespDTO;
+import org.buaa.project.service.EsService;
 import org.buaa.project.service.QuestionService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,6 +37,8 @@ import java.util.List;
 public class QuestionController {
 
     private final QuestionService questionService;
+
+    private final EsService esService;
 
     /**
      * 上传题目
@@ -85,8 +89,16 @@ public class QuestionController {
      * 分页查询题目
      */
     @GetMapping("/api/answerly/v1/question/page")
-    public Result<IPage<QuestionPageRespDTO>> pageQuestion(QuestionPageReqDTO requestParam) {
-        return Results.success(questionService.pageQuestion(requestParam));
+    public Result<QuestionPageAllRespDTO> pageQuestion(QuestionPageReqDTO requestParam) {
+        return Results.success(esService.search(requestParam));
+    }
+
+    /**
+     * keyword自动补全
+     */
+    @GetMapping("/api/answerly/v1/question/suggest")
+    public Result<List<String>> autoComplete(@RequestParam String keyword) {
+        return Results.success(esService.autoComplete(keyword));
     }
 
     /**

@@ -34,7 +34,8 @@ public class LoginCheckFilter implements Filter {
             "/api/answerly/v1/user/captcha", //登录时获取验证码
             "/actuator", //监控
             "/actuator/prometheus",
-            "/api/answerly/v1/question/hot" //热门问题
+            "/api/answerly/v1/question/hot", //热门问题
+            "/api/answerly/v1/question/suggest" //补全
     );
 
     private boolean requireLogin(String URI, String method) {

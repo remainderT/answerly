@@ -4,7 +4,6 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -20,7 +19,6 @@ import org.buaa.project.dto.req.question.QuestionCollectPageReqDTO;
 import org.buaa.project.dto.req.question.QuestionCollectReqDTO;
 import org.buaa.project.dto.req.question.QuestionLikeReqDTO;
 import org.buaa.project.dto.req.question.QuestionMinePageReqDTO;
-import org.buaa.project.dto.req.question.QuestionPageReqDTO;
 import org.buaa.project.dto.req.question.QuestionRecentPageReqDTO;
 import org.buaa.project.dto.req.question.QuestionSolveReqDTO;
 import org.buaa.project.dto.req.question.QuestionUpdateReqDTO;
@@ -36,7 +34,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import static org.buaa.project.common.consts.RedisCacheConstants.ACTIVITY_SCORE_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.HOT_QUESTION_KEY;
@@ -133,38 +130,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         // 更新浏览数
         redisCount.hIncr(QUESTION_COUNT_KEY + id, "view", 1);
         return result;
-    }
-
-    @Override
-    public IPage<QuestionPageRespDTO> pageQuestion(QuestionPageReqDTO requestParam) {
-        String search = requestParam.getSearch();
-        LambdaQueryWrapper<QuestionDO> queryWrapper = Wrappers.lambdaQuery(QuestionDO.class)
-                .eq(QuestionDO::getDelFlag, 0)
-                .eq(requestParam.getSolvedFlag() != 2 , QuestionDO::getSolvedFlag, requestParam.getSolvedFlag())
-                .eq(requestParam.getCategoryId() != null, QuestionDO::getCategoryId, requestParam.getCategoryId())
-                .and(StringUtils.isNotBlank(search), wrapper ->
-                        wrapper.like(QuestionDO::getTitle, search)
-                                .or()
-                                .like(QuestionDO::getContent, search)
-                );
-
-        IPage<QuestionDO> page = baseMapper.selectPage(requestParam, queryWrapper);
-        return page.convert(each -> {
-            QuestionPageRespDTO dto = BeanUtil.toBean(each, QuestionPageRespDTO.class);
-            if (StringUtils.isNotBlank(search)) {
-                // 处理高亮
-                String highlightTemplate = "<mark>%s</mark>";
-                String highlightSearch = String.format(highlightTemplate, search);
-                if (StringUtils.isNotBlank(dto.getTitle())) {
-                    dto.setTitle(dto.getTitle().replaceAll(Pattern.quote(search), highlightSearch));
-                }
-                if (StringUtils.isNotBlank(dto.getContent())) {
-                    dto.setContent(dto.getContent().replaceAll(Pattern.quote(search), highlightSearch));
-                }
-            }
-            fillQuestionCount(dto);
-            return dto;
-        });
     }
 
     @Override
