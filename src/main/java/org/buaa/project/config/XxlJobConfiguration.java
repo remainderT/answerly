@@ -15,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 @Data
 @Slf4j
-public class XxlJobConfig {
+public class XxlJobConfiguration {
 
     @Value("${xxl.job.admin.addresses}")
     private String adminAddresses;
@@ -45,7 +45,6 @@ public class XxlJobConfig {
     @Bean
     public XxlJobSpringExecutor xxlJobExecutor() {
         XxlJobHelper.log(">>>>>>>>>>> xxl-job config init.>>>>>>>>>>>");
-        log.info("=============== xxl-job config init.===============");
 
         XxlJobSpringExecutor xxlJobSpringExecutor = new XxlJobSpringExecutor();
         xxlJobSpringExecutor.setAdminAddresses(adminAddresses);

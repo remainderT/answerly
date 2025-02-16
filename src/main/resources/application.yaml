@@ -65,6 +65,7 @@ management:
     health:
       show-details: always
 
+
 mybatis-plus:
   global-config:
     db-config:
@@ -77,12 +78,14 @@ xxl:
     accessToken: default_token
     executor:
       appname: answerly
-      address: ""
-      ip: ""
       port: 9998
-      logpath:
       logretentiondays: 7
 
 elasticsearch:
-  host: localhost
+  host: nurl.top
   index-name: question
+
+canal:
+  host: localhost
+  port: 11111
+  destination: example

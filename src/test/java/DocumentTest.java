@@ -27,7 +27,6 @@ public class DocumentTest {
     @Autowired
     private QuestionService questionService;
 
-
     @Test
     void testInsertAndVerify() {
         List<QuestionDO> questionDOS = questionService.list();
@@ -46,7 +45,6 @@ public class DocumentTest {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
         }
     }
 
