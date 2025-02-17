@@ -56,9 +56,9 @@ import static org.buaa.project.common.consts.RedisCacheConstants.ACTIVITY_SCORE_
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_COUNT_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_INFO_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_LOGIN_CAPTCHA_KEY;
-import static org.buaa.project.common.consts.RedisCacheConstants.USER_LOGIN_EXPIRE;
+import static org.buaa.project.common.consts.RedisCacheConstants.USER_LOGIN_EXPIRE_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_LOGIN_KEY;
-import static org.buaa.project.common.consts.RedisCacheConstants.USER_REGISTER_CODE_EXPIRE;
+import static org.buaa.project.common.consts.RedisCacheConstants.USER_REGISTER_CODE_EXPIRE_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_REGISTER_CODE_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_REGISTER_LOCK_KEY;
 import static org.buaa.project.common.consts.SystemConstants.SYSTEM_MESSAGE_ID;
@@ -128,7 +128,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         try {
             mailSender.send(message);
             String key = USER_REGISTER_CODE_KEY + mail.replace(EMAIL_SUFFIX,"");
-            stringRedisTemplate.opsForValue().set(key, code, USER_REGISTER_CODE_EXPIRE, TimeUnit.MINUTES);
+            stringRedisTemplate.opsForValue().set(key, code, USER_REGISTER_CODE_EXPIRE_KEY, TimeUnit.MINUTES);
             return true;
         } catch (Exception e) {
             throw new ServiceException(MAIL_SEND_ERROR);
@@ -210,7 +210,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             return new UserLoginRespDTO(hasLogin);
         }
         String uuid = UUID.randomUUID().toString();
-        stringRedisTemplate.opsForValue().set(USER_LOGIN_KEY + requestParam.getUsername(), uuid, USER_LOGIN_EXPIRE, TimeUnit.DAYS);
+        stringRedisTemplate.opsForValue().set(USER_LOGIN_KEY + requestParam.getUsername(), uuid, USER_LOGIN_EXPIRE_KEY, TimeUnit.DAYS);
         return new UserLoginRespDTO(uuid);
     }
 
@@ -256,7 +256,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
          */
         if (!requestParam.getOldUsername().equals(requestParam.getNewUsername())) {
             stringRedisTemplate.delete(USER_INFO_KEY + requestParam.getOldUsername());
-            stringRedisTemplate.opsForValue().set(USER_LOGIN_KEY + requestParam.getNewUsername(), UserContext.getToken(), USER_LOGIN_EXPIRE, TimeUnit.DAYS);
+            stringRedisTemplate.opsForValue().set(USER_LOGIN_KEY + requestParam.getNewUsername(), UserContext.getToken(), USER_LOGIN_EXPIRE_KEY, TimeUnit.DAYS);
         }
         UserDO newUserDO = baseMapper.selectOne(Wrappers.lambdaQuery(UserDO.class)
                 .eq(UserDO::getUsername, requestParam.getNewUsername()));
@@ -297,7 +297,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
                 .generateId(0L)
                 .data(data)
                 .build();
-        producer.send(event);
+        producer.messageSend(event);
     }
 
 }

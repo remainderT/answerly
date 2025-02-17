@@ -8,7 +8,8 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.buaa.project.common.consts.RedisCacheConstants.STREAM_TOPIC_KEY;
+import static org.buaa.project.common.consts.RedisCacheConstants.DATA_SYNC_STREAM_KEY;
+import static org.buaa.project.common.consts.RedisCacheConstants.MESSAGE_SEND_STREAM_KEY;
 
 @Component
 @RequiredArgsConstructor
@@ -16,10 +17,16 @@ public class MqProducer {
 
     private final StringRedisTemplate stringRedisTemplate;
 
-    public void send(MqEvent event) {
+    public void messageSend(MqEvent event) {
         Map<String, String> producerMap = new HashMap<>();
         producerMap.put("event", JSON.toJSONString(event));
-        stringRedisTemplate.opsForStream().add(STREAM_TOPIC_KEY, producerMap);
+        stringRedisTemplate.opsForStream().add(MESSAGE_SEND_STREAM_KEY, producerMap);
+    }
+
+    public void dataSync(MqEvent event) {
+        Map<String, String> producerMap = new HashMap<>();
+        producerMap.put("event", JSON.toJSONString(event));
+        stringRedisTemplate.opsForStream().add(DATA_SYNC_STREAM_KEY, producerMap);
     }
 
 }

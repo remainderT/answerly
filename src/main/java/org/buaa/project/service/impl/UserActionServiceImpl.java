@@ -131,7 +131,7 @@ public class UserActionServiceImpl extends ServiceImpl<UserActionMapper, UserAct
                 .generateId(userAction.getId())
                 .data(data)
                 .build();
-        producer.send(event);
+        producer.messageSend(event);
     }
 
 }

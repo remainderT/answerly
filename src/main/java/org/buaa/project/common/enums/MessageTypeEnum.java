@@ -13,7 +13,13 @@ public enum MessageTypeEnum {
 
     COLLECT("collect"),
 
-    USEFUL("useful");
+    USEFUL("useful"),
+
+    DELETE("delete"),
+
+    INSERT("insert"),
+
+    UPDATE("update");
 
     private final String type;
 

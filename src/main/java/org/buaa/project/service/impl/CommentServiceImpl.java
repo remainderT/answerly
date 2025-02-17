@@ -235,7 +235,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
                 .generateId(commentDO.getId())
                 .data(data)
                 .build();
-        producer.send(event);
+        producer.messageSend(event);
 
     }
 

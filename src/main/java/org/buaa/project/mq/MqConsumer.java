@@ -1,5 +1,6 @@
 package org.buaa.project.mq;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
@@ -10,11 +11,18 @@ import org.buaa.project.common.enums.MessageTypeEnum;
 import org.buaa.project.dao.entity.CommentDO;
 import org.buaa.project.dao.entity.MessageDO;
 import org.buaa.project.dao.entity.QuestionDO;
+import org.buaa.project.dao.entity.QuestionDOC;
 import org.buaa.project.dao.entity.UserDO;
 import org.buaa.project.dao.mapper.CommentMapper;
 import org.buaa.project.dao.mapper.MessageMapper;
 import org.buaa.project.dao.mapper.QuestionMapper;
 import org.buaa.project.dao.mapper.UserMapper;
+import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.xcontent.XContentType;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -23,6 +31,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Objects;
+
+import static org.buaa.project.common.consts.RedisCacheConstants.DATA_SYNC_STREAM_KEY;
 
 @Slf4j
 @Component
@@ -41,6 +51,11 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
 
     private final CommentMapper commentMapper;
 
+    private final RestHighLevelClient client;
+
+    @Value("${elasticsearch.index-name}")
+    private String INDEX_NAME;
+
     @Override
     public void onMessage(MapRecord<String, String, String> message) {
         String stream = message.getStream();
@@ -55,7 +70,11 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
         try {
             Map<String, String> producerMap = message.getValue();
             MqEvent event = JSON.parseObject(producerMap.get("event"), MqEvent.class);
-            consume(event);
+            if (Objects.equals(message.getStream(), DATA_SYNC_STREAM_KEY)) {
+                dataSyncConsume(event);
+            } else {
+                messageSendConsume(event);
+            }
             stringRedisTemplate.opsForStream().delete(Objects.requireNonNull(stream), id.getValue());
         } catch (Throwable ex) {
             // 某某某情况宕机了
@@ -66,7 +85,43 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
         mqIdempotent.setAccomplish(id.toString());
     }
 
-    public void consume(MqEvent event) {
+    public void dataSyncConsume(MqEvent event) {
+        String question = event.getData().get("question").toString();
+        QuestionDO questionDO = JSON.parseObject(question, QuestionDO.class);
+        QuestionDOC questionDOC = BeanUtil.copyProperties(questionDO, QuestionDOC.class);
+        questionDOC.setId(questionDO.getId());
+        try {
+            switch (event.getMessageType()) {
+                case INSERT:
+                    IndexRequest indexRequest= new IndexRequest(INDEX_NAME).id(questionDO.getId().toString());
+                    indexRequest.source(JSON.toJSONString(questionDOC),XContentType.JSON);
+                    client.index(indexRequest, RequestOptions.DEFAULT);
+                    log.info("ES插入数据: {}", questionDOC);
+                    break;
+
+                case DELETE:
+                    DeleteRequest deleteRequest = new DeleteRequest(INDEX_NAME,  questionDO.getId().toString());
+                    client.delete(deleteRequest, RequestOptions.DEFAULT);
+                    log.info("ES删除数据: {}", questionDOC);
+                    break;
+
+                case UPDATE:
+                    IndexRequest updateRequest = new IndexRequest(INDEX_NAME).id(questionDO.getId().toString());
+                    updateRequest.source(JSON.toJSONString(questionDOC), XContentType.JSON);
+                    client.index(updateRequest, RequestOptions.DEFAULT);
+                    log.info("ES更新数据: {}", questionDOC);
+                    break;
+
+                default:
+                    break;
+            }
+        } catch (Exception e) {
+            log.error("ES操作失败", e);
+        }
+
+    }
+
+    public void messageSendConsume(MqEvent event) {
         if (!Objects.equals(event.getUserId(), event.getEntityUserId())) {
             UserDO from = userMapper.selectById(event.getUserId());
             CommentDO comment = null;

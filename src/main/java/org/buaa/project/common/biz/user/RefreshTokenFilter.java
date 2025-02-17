@@ -20,7 +20,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_INFO_KEY;
-import static org.buaa.project.common.consts.RedisCacheConstants.USER_LOGIN_EXPIRE;
+import static org.buaa.project.common.consts.RedisCacheConstants.USER_LOGIN_EXPIRE_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_LOGIN_KEY;
 
 /**
@@ -51,7 +51,7 @@ public class RefreshTokenFilter implements Filter {
         UserDO userDO = JSON.parseObject(stringRedisTemplate.opsForValue().get(USER_INFO_KEY + username), UserDO.class);
         if (userDO == null) {
             userDO = userMapper.selectOne(new QueryWrapper<UserDO>().eq("username", username));
-            stringRedisTemplate.opsForValue().set(USER_INFO_KEY + username, JSON.toJSONString(userDO), USER_LOGIN_EXPIRE, TimeUnit.DAYS);
+            stringRedisTemplate.opsForValue().set(USER_INFO_KEY + username, JSON.toJSONString(userDO), USER_LOGIN_EXPIRE_KEY, TimeUnit.DAYS);
         }
         UserInfoDTO userInfoDTO = UserInfoDTO.builder().
                 userId(String.valueOf(userDO.getId())).
@@ -62,7 +62,7 @@ public class RefreshTokenFilter implements Filter {
                 build();
         UserContext.setUser(userInfoDTO);
 
-        stringRedisTemplate.expire(USER_LOGIN_KEY + username, USER_LOGIN_EXPIRE, TimeUnit.DAYS);
+        stringRedisTemplate.expire(USER_LOGIN_KEY + username, USER_LOGIN_EXPIRE_KEY, TimeUnit.DAYS);
         
         try {
             filterChain.doFilter(servletRequest, servletResponse);

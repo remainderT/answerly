@@ -18,7 +18,7 @@ public class RedisCacheConstants {
     /**
      * 用户注册验证码缓存过期时间
      */
-    public static final long USER_REGISTER_CODE_EXPIRE = 5L;
+    public static final long USER_REGISTER_CODE_EXPIRE_KEY = 5L;
 
     /**
      * 用户登录缓存标识
@@ -28,7 +28,7 @@ public class RedisCacheConstants {
     /**
      * 用户登录缓存过期时间(天)
      */
-    public static final long USER_LOGIN_EXPIRE = 30L;
+    public static final long USER_LOGIN_EXPIRE_KEY = 30L;
 
     /**
      * 用户个人信息缓存标识
@@ -51,14 +51,14 @@ public class RedisCacheConstants {
     public static final String USER_COUNT_KEY = "answerly:user:count:";
 
     /**
-     * 消息队列 Topic 缓存标识
+     * 消息发送流缓存标识
      */
-    public static final String STREAM_TOPIC_KEY = "answerly:redis-stream";
+    public static final String MESSAGE_SEND_STREAM_KEY = "answerly:stream:message-send";
 
     /**
-     * 消息队列 Group 缓存标识
+     * 数据同步流缓存标识
      */
-    public static final String STREAM_GROUP_KEY = "answerly:redis-stream:only-group";
+    public static final String DATA_SYNC_STREAM_KEY = "answerly:stream:data-sync";
 
     /**
      * 用户登录图片验证码

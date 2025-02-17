@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.buaa.project.common.biz.user.UserContext;
 import org.buaa.project.common.convention.exception.ClientException;
 import org.buaa.project.common.enums.EntityTypeEnum;
+import org.buaa.project.common.enums.MessageTypeEnum;
 import org.buaa.project.common.enums.UserActionTypeEnum;
 import org.buaa.project.dao.entity.QuestionDO;
 import org.buaa.project.dao.mapper.QuestionMapper;
@@ -25,6 +26,8 @@ import org.buaa.project.dto.req.question.QuestionUpdateReqDTO;
 import org.buaa.project.dto.req.question.QuestionUploadReqDTO;
 import org.buaa.project.dto.resp.QuestionPageRespDTO;
 import org.buaa.project.dto.resp.QuestionRespDTO;
+import org.buaa.project.mq.MqEvent;
+import org.buaa.project.mq.MqProducer;
 import org.buaa.project.service.QuestionService;
 import org.buaa.project.service.UserActionService;
 import org.buaa.project.toolkit.RedisCount;
@@ -32,6 +35,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -53,6 +57,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
     private final UserActionService userActionService;
     private final RedisCount redisCount;
     private final StringRedisTemplate stringRedisTemplate;
+    private final MqProducer producer;
 
     @Override
     public void uploadQuestion(QuestionUploadReqDTO requestParam) {
@@ -61,6 +66,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         question.setUsername(UserContext.getUsername());
         baseMapper.insert(question);
         redisCount.zIncr(ACTIVITY_SCORE_KEY, UserContext.getUserId().toString(), QUESTION_SCORE);
+
+        dataSync(question, MessageTypeEnum.INSERT);
     }
 
     @Override
@@ -74,6 +81,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         QuestionDO questionDO = baseMapper.selectOne(queryWrapper);
         BeanUtils.copyProperties(requestParam, questionDO);
         baseMapper.update(questionDO, queryWrapper);
+
+        dataSync(questionDO, MessageTypeEnum.UPDATE);
     }
 
     @Override
@@ -86,6 +95,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         QuestionDO question = baseMapper.selectById(id);
         question.setDelFlag(1);
         baseMapper.updateById(question);
+
+        dataSync(question, MessageTypeEnum.DELETE);
     }
 
     @Override
@@ -211,6 +222,16 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         QuestionDO question = baseMapper.selectById(id);
         return question.getUserId();
 
+    }
+
+    public void dataSync(QuestionDO questionDO, MessageTypeEnum messageType) {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("question", questionDO);
+        MqEvent event = MqEvent.builder()
+                .messageType(messageType)
+                .data(map)
+                .build();
+        producer.dataSync(event);
     }
 
 }
