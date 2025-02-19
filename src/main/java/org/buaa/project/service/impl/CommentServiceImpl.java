@@ -207,7 +207,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
         commentPageRespDTO.setAvatar(userDO.getAvatar());
         commentPageRespDTO.setLikeCount(redisCount.hGet(COMMENT_COUNT_KEY + commentDO.getId(), "like"));
         String likeStatus = UserContext.getUsername() == null ? "未登录" :
-                userActionService.getUserAction(UserContext.getUserId(), EntityTypeEnum.QUESTION, commentDO.getId()).getLikeStat() == 1 ?  "已点赞" : "未点赞";
+                userActionService.getUserAction(UserContext.getUserId(), EntityTypeEnum.COMMENT, commentDO.getId()).getLikeStat() == 1 ?  "已点赞" : "未点赞";
         commentPageRespDTO.setLikeStatus(likeStatus);
         return commentPageRespDTO;
     }

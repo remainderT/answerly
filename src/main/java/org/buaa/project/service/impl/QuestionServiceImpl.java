@@ -35,6 +35,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -155,9 +156,12 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
     @Override
     public List<QuestionPageRespDTO> findHotQuestion(Long categoryId) {
         Set<String> topQuestions = stringRedisTemplate.opsForZSet().reverseRange(HOT_QUESTION_KEY + categoryId, 0, 9);
+        if (topQuestions.isEmpty()) {
+            return Collections.emptyList();
+        }
         return baseMapper.selectList(new LambdaQueryWrapper<QuestionDO>()
-                .in(QuestionDO::getId, topQuestions)
-                .eq(QuestionDO::getDelFlag, 0))
+                        .in(QuestionDO::getId, topQuestions)
+                        .eq(QuestionDO::getDelFlag, 0))
                 .stream()
                 .map(each -> {
                     QuestionPageRespDTO dto = BeanUtil.toBean(each, QuestionPageRespDTO.class);

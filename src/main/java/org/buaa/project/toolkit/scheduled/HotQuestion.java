@@ -23,9 +23,9 @@ import static org.buaa.project.common.consts.SystemConstants.COMMENT_WEIGHT;
 import static org.buaa.project.common.consts.SystemConstants.LIKE_WEIGHT;
 import static org.buaa.project.common.consts.SystemConstants.VIEW_WEIGHT;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class HotQuestion {
 
     private final StringRedisTemplate stringRedisTemplate;
@@ -37,8 +37,7 @@ public class HotQuestion {
 
     @XxlJob("hotQuestion")
     public void hotQuestion() {
-
-        System.out.println("执行定时任务,执行时间:" + new Date());
+        log.info("执行定时任务,执行时间:{}", new Date());
 
         List<CategoryDO> categorys = categoryMapper.selectList(null);
 
