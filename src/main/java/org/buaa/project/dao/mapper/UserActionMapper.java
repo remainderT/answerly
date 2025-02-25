@@ -25,7 +25,7 @@ public interface UserActionMapper extends BaseMapper<UserActionDO> {
             "WHERE ua.user_id = #{userId} " +
             "AND ua.entity_type = 0 " +
             "AND ua.del_flag = 0 " +
-            "AND ua.collection_stat = 1 " +
+            "AND ua.collect_stat = 1 " +
             "AND q.del_flag = 0 " +
             "ORDER BY q.create_time DESC")
     IPage<QuestionPageRespDTO> pageCollectQuestion(Page<?> page,

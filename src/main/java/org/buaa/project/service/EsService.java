@@ -19,4 +19,9 @@ public interface EsService {
      * 自动补全
      */
     List<String> autoComplete(String keyword);
+
+    /**
+     * 分词
+     */
+    List<String> analyze(String text);
 }

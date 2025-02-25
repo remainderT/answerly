@@ -15,6 +15,8 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.indices.AnalyzeRequest;
+import org.elasticsearch.client.indices.AnalyzeResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHits;
@@ -139,14 +141,28 @@ public class EsServiceImpl implements EsService {
         Suggest suggest = response.getSuggest();
         CompletionSuggestion suggestions = suggest.getSuggestion("mySuggestion");
 
-        List<CompletionSuggestion.Entry.Option> options = suggestions.getOptions();
-        List<String> list = new ArrayList<>(options.size());
-        for (CompletionSuggestion.Entry.Option option : options) {
-            String text = option.getText().toString();
-            list.add(text);
+        List<String> titles = new ArrayList<>();
+        for (CompletionSuggestion.Entry.Option option : suggestions.getOptions()) {
+            // 从每个选项中获取 _source 并提取 title
+            Map<String, Object> source = option.getHit().getSourceAsMap();
+            if (source != null && source.containsKey("title")) {
+                titles.add((String) source.get("title"));
+            }
         }
-        return list;
+
+        return titles;
     }
 
+    @SneakyThrows
+    public List<String> analyze(String text) {
+        AnalyzeRequest request = AnalyzeRequest.withIndexAnalyzer(INDEX_NAME, "ik_max_word", text);
+        AnalyzeResponse response = client.indices().analyze(request, RequestOptions.DEFAULT);
+
+        List<String> tokens = new ArrayList<>();
+        for (AnalyzeResponse.AnalyzeToken token : response.getTokens()) {
+            tokens.add(token.getTerm());
+        }
+        return tokens;
+    }
 
 }

@@ -202,6 +202,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
                     .map(CommentDO::getUsername)
                     .findFirst();
         }
+
         CommentPageRespDTO commentPageRespDTO = BeanUtil.copyProperties(commentDO, CommentPageRespDTO.class);
         commentTo.ifPresent(commentPageRespDTO::setCommentTo);
         commentPageRespDTO.setAvatar(userDO.getAvatar());

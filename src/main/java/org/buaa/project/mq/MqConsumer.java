@@ -17,6 +17,7 @@ import org.buaa.project.dao.mapper.CommentMapper;
 import org.buaa.project.dao.mapper.MessageMapper;
 import org.buaa.project.dao.mapper.QuestionMapper;
 import org.buaa.project.dao.mapper.UserMapper;
+import org.buaa.project.service.EsService;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.RequestOptions;
@@ -29,8 +30,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.stream.StreamListener;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -55,6 +54,8 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
     private final CommentMapper commentMapper;
 
     private final RestHighLevelClient client;
+
+    private final EsService esService;
 
     @Value("${elasticsearch.index-name}")
     private String INDEX_NAME;
@@ -92,8 +93,8 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
         String question = event.getData().get("question").toString();
         QuestionDO questionDO = JSON.parseObject(question, QuestionDO.class);
         QuestionDOC questionDOC = BeanUtil.copyProperties(questionDO, QuestionDOC.class);
-        List<String> list = new ArrayList<>(Arrays.asList(questionDO.getContent(), questionDO.getTitle()));
-        questionDOC.setSuggestion(list);
+        List<String> suggestion = esService.analyze(questionDO.getTitle());
+        questionDOC.setSuggestion(suggestion);
         questionDOC.setId(questionDO.getId());
         try {
             switch (event.getMessageType()) {
