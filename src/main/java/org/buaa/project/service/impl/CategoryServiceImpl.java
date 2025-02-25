@@ -14,6 +14,7 @@ import org.buaa.project.dto.req.category.CategoryCreateReqDTO;
 import org.buaa.project.dto.req.category.CategoryUpdateReqDTO;
 import org.buaa.project.dto.resp.CategoryRespDTO;
 import org.buaa.project.service.CategoryService;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,6 +27,8 @@ import static org.buaa.project.common.enums.QAErrorCodeEnum.CATEGORY_ACCESS_CONT
 @Service
 @RequiredArgsConstructor
 public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, CategoryDO> implements CategoryService {
+
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Override
     public void addCategory(CategoryCreateReqDTO requestParam) {

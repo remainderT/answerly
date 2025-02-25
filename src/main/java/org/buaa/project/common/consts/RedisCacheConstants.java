@@ -75,4 +75,24 @@ public class RedisCacheConstants {
      */
     public static final String ACTIVITY_SCORE_KEY = "answerly:user:activity:score:";
 
+    /**
+     * 问题内容缓存
+     */
+    public static final String QUESTION_CONTENT_KEY = "answerly:question:content:";
+
+    /**
+     * 问题分布式锁
+     */
+    public static final String QUESTION_LOCK_KEY = "answerly:question:lock:";
+
+    /**
+     * 分类内容缓存
+     */
+    public static final String CATEGORY_CONTENT_KEY = "answerly:category:content:";
+
+    /**
+     * 分类分布式锁
+     */
+    public static final String CATEGORY_LOCK_KEY = "answerly:category:lock:";
+
 }

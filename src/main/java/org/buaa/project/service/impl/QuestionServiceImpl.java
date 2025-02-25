@@ -1,6 +1,8 @@
 package org.buaa.project.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -31,6 +33,8 @@ import org.buaa.project.mq.MqProducer;
 import org.buaa.project.service.QuestionService;
 import org.buaa.project.service.UserActionService;
 import org.buaa.project.toolkit.RedisCount;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -38,11 +42,15 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static org.buaa.project.common.consts.RedisCacheConstants.ACTIVITY_SCORE_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.HOT_QUESTION_KEY;
+import static org.buaa.project.common.consts.RedisCacheConstants.QUESTION_CONTENT_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.QUESTION_COUNT_KEY;
+import static org.buaa.project.common.consts.RedisCacheConstants.QUESTION_LOCK_KEY;
 import static org.buaa.project.common.consts.SystemConstants.QUESTION_SCORE;
 import static org.buaa.project.common.enums.QAErrorCodeEnum.QUESTION_ACCESS_CONTROL_ERROR;
 import static org.buaa.project.common.enums.QAErrorCodeEnum.QUESTION_NULL;
@@ -59,6 +67,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
     private final RedisCount redisCount;
     private final StringRedisTemplate stringRedisTemplate;
     private final MqProducer producer;
+    private final RedissonClient redissonClient;
 
     @Override
     public void uploadQuestion(QuestionUploadReqDTO requestParam) {
@@ -82,6 +91,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         QuestionDO questionDO = baseMapper.selectOne(queryWrapper);
         BeanUtils.copyProperties(requestParam, questionDO);
         baseMapper.update(questionDO, queryWrapper);
+        String question = JSON.toJSONString(questionDO);
+        stringRedisTemplate.opsForValue().set(QUESTION_CONTENT_KEY + id, question, 1, TimeUnit.HOURS);
 
         dataSync(questionDO, MessageTypeEnum.UPDATE);
     }
@@ -97,6 +108,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         question.setDelFlag(1);
         baseMapper.updateById(question);
 
+        stringRedisTemplate.delete(QUESTION_CONTENT_KEY + id);
         dataSync(question, MessageTypeEnum.DELETE);
     }
 
@@ -120,9 +132,31 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
 
     @Override
     public QuestionRespDTO findQuestionById(Long id) {
-        QuestionDO question = baseMapper.selectById(id);
+        String question = stringRedisTemplate.opsForValue().get(QUESTION_CONTENT_KEY + id);
+        Random random = new Random();
+        QuestionDO questionDO = null;
+        if (StrUtil.isBlank(question)) {
+            RLock lock = redissonClient.getLock(QUESTION_LOCK_KEY + id + random.nextInt(6));
+            lock.lock();
+            try {
+                question = stringRedisTemplate.opsForValue().get(QUESTION_CONTENT_KEY + id);
+                if (StrUtil.isBlank(question)) {
+                    questionDO = baseMapper.selectById(id);
+                    if (questionDO == null || questionDO.getDelFlag() != 0) {
+                        throw new ClientException(QUESTION_NULL);
+                    }
+                    question = JSON.toJSONString(questionDO);
+                    stringRedisTemplate.opsForValue().set(QUESTION_CONTENT_KEY + id, question, 1, TimeUnit.HOURS);
+                } else {
+                    questionDO = BeanUtil.toBean(BeanUtil.toBean(question, HashMap.class), QuestionDO.class);
+                }
+            } finally {
+                lock.unlock();
+            }
+        }
+
         QuestionRespDTO result = new QuestionRespDTO();
-        BeanUtils.copyProperties(question, result);
+        BeanUtils.copyProperties(questionDO, result);
 
         Long userId = UserContext.getUserId();
 
