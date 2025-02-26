@@ -1,5 +1,6 @@
 package org.buaa.project.config;
 
+import org.buaa.project.common.biz.user.CountStatisticsFilter;
 import org.buaa.project.common.biz.user.LoginCheckFilter;
 import org.buaa.project.common.biz.user.RefreshTokenFilter;
 import org.buaa.project.common.biz.user.UserFlowRiskControlFilter;
@@ -50,6 +51,18 @@ public class UserConfiguration {
         registration.setFilter(new UserFlowRiskControlFilter(stringRedisTemplate, userFlowRiskControlConfiguration));
         registration.addUrlPatterns("/*");
         registration.setOrder(2);
+        return registration;
+    }
+
+    /**
+     * 系统计数过滤器
+     */
+    @Bean
+    public FilterRegistrationBean<CountStatisticsFilter> globalCountStatisticsFilter(StringRedisTemplate stringRedisTemplate) {
+        FilterRegistrationBean<CountStatisticsFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new CountStatisticsFilter(stringRedisTemplate));
+        registration.addUrlPatterns("/*");
+        registration.setOrder(3);
         return registration;
     }
 

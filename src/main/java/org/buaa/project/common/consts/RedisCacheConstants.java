@@ -95,4 +95,29 @@ public class RedisCacheConstants {
      */
     public static final String CATEGORY_LOCK_KEY = "answerly:category:lock:";
 
+    /**
+     * 总pv
+     */
+    public static final String TOTAL_PV_KEY = "answerly:system:pv:total";
+
+    /**
+     * 今日pv
+     */
+    public static final String TODAY_PV_KEY = "answerly:system:pv:today:";
+
+    /**
+     * 总uv
+     */
+    public static final String TOTAL_UV_KEY = "answerly:system:uv:total";
+
+    /**
+     * 今日uv
+     */
+    public static final String TODAY_UV_KEY = "answerly:system:uv:today:";
+
+    /**
+     * 签到
+     */
+    public static final String USER_SIGN = "answerly:user:sign";
+
 }
