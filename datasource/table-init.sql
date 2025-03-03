@@ -30,7 +30,6 @@ INSERT INTO `user` (`username`, `password`, `salt`, `mail`, `avatar`, `phone`, `
 VALUES ('admin', 'e62ee014c28a13e75d90df35d04f6faf', '13246','admin@example.com', NULL, NULL, 'Administrator account', 0, 0, 0, 'admin', 1, NOW(), NOW(), 0);
 
 
-
 DROP TABLE IF EXISTS `category`;
 CREATE TABLE `category` (
                             `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
@@ -88,26 +87,26 @@ CREATE TABLE `user_action` (
                                `update_time` datetime     DEFAULT NULL COMMENT '修改时间',
                                `del_flag`   tinyint(1)    DEFAULT NULL COMMENT '删除标识 0：未删除 1：已删除',
                                PRIMARY KEY (`id`),
-                               KEY `idx_user_entity_id` (`user_id`, `entity_id`)
+                               KEY `idx_user_entity_type_id` (`user_id`, `entity_type`, `entity_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户行为';
 
 
 DROP TABLE IF EXISTS `comment`;
 CREATE TABLE `comment` (
-                          `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
-                          `user_id` bigint(20)       NOT NULL COMMENT '发布人ID',
-                          `username` varchar(256)    NOT NULL COMMENT '用户名',
-                          `question_id` bigint(20)   NOT NULL COMMENT '问题ID',
-                          `content` varchar(2048)    DEFAULT NULL COMMENT '内容',
-                          `top_comment_id` bigint(20) NOT NULL DEFAULT '0' COMMENT '顶级评论ID',
-                          `parent_comment_id` bigint(20) NOT NULL DEFAULT '0' COMMENT '父评论ID',
-                          `images` varchar(600)      DEFAULT NULL COMMENT '照片路径，最多10张，多张以","隔开',
-                          `like_count` int(11)       DEFAULT 0 COMMENT '点赞数',
-                          `useful` tinyint(1)        DEFAULT 0 COMMENT '是否有用',
-                          `create_time` datetime     DEFAULT NULL COMMENT '创建时间',
-                          `update_time` datetime     DEFAULT NULL COMMENT '修改时间',
-                          `del_flag`    tinyint(1)   DEFAULT NULL COMMENT '删除标识 0：未删除 1：已删除',
-                          PRIMARY KEY (`id`)
+                           `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
+                           `user_id` bigint(20)       NOT NULL COMMENT '发布人ID',
+                           `username` varchar(256)    NOT NULL COMMENT '用户名',
+                           `question_id` bigint(20)   NOT NULL COMMENT '问题ID',
+                           `content` varchar(2048)    DEFAULT NULL COMMENT '内容',
+                           `top_comment_id` bigint(20) NOT NULL DEFAULT '0' COMMENT '顶级评论ID',
+                           `parent_comment_id` bigint(20) NOT NULL DEFAULT '0' COMMENT '父评论ID',
+                           `images` varchar(600)      DEFAULT NULL COMMENT '照片路径，最多10张，多张以","隔开',
+                           `like_count` int(11)       DEFAULT 0 COMMENT '点赞数',
+                           `useful` tinyint(1)        DEFAULT 0 COMMENT '是否有用',
+                           `create_time` datetime     DEFAULT NULL COMMENT '创建时间',
+                           `update_time` datetime     DEFAULT NULL COMMENT '修改时间',
+                           `del_flag`    tinyint(1)   DEFAULT NULL COMMENT '删除标识 0：未删除 1：已删除',
+                           PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='回复';
 
 DROP TABLE IF EXISTS `message`;

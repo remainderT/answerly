@@ -7,6 +7,7 @@ import jakarta.servlet.ServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.data.redis.core.HyperLogLogOperations;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
@@ -35,27 +36,30 @@ public class CountStatisticsFilter implements Filter {
             Long userID = UserContext.getUserId();
 
             LocalDate now = LocalDate.now();
+            String todayDate = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-            ValueOperations<String, String> valueOps = stringRedisTemplate.opsForValue();
-            valueOps.increment(TOTAL_PV_KEY);
-            String todayPvKey = TODAY_PV_KEY + now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-            valueOps.increment(todayPvKey);
+            stringRedisTemplate.executePipelined((RedisCallback<?>) connection -> {
+                ValueOperations<String, String> valueOps = stringRedisTemplate.opsForValue();
+                valueOps.increment(TOTAL_PV_KEY);
+                valueOps.increment(TODAY_PV_KEY + todayDate);
 
-            HyperLogLogOperations<String, String> hyperLogLogOps = stringRedisTemplate.opsForHyperLogLog();
-            hyperLogLogOps.add(TOTAL_UV_KEY, ipAddress);
-            hyperLogLogOps.add(TODAY_UV_KEY + now.format(DateTimeFormatter.ofPattern("yyyyMMdd")), ipAddress);
+                HyperLogLogOperations<String, String> hyperLogLogOps = stringRedisTemplate.opsForHyperLogLog();
+                hyperLogLogOps.add(TOTAL_UV_KEY, ipAddress);
+                hyperLogLogOps.add(TODAY_UV_KEY + todayDate, ipAddress);
 
-            if (userID != null) {
-                int dayOfMonth = now.getDayOfMonth();
-                stringRedisTemplate.opsForValue().setBit(USER_SIGN + now.getYear() + "-" + now.getMonthValue(), (dayOfMonth - 1L) *  userID, true);
-            }
+                if (userID != null) {
+                    int dayOfMonth = now.getDayOfMonth();
+                    stringRedisTemplate.opsForValue().setBit(USER_SIGN + now.getYear() + "-" + now.getMonthValue(), (dayOfMonth - 1L) * userID, true);
+                }
+
+                return null;
+            });
 
             filterChain.doFilter(servletRequest, servletResponse);
         } finally {
             UserContext.removeUser();
         }
     }
-
 
 
 }

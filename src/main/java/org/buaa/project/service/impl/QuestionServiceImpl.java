@@ -48,8 +48,10 @@ import java.util.concurrent.TimeUnit;
 
 import static org.buaa.project.common.consts.RedisCacheConstants.ACTIVITY_SCORE_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.HOT_QUESTION_KEY;
+import static org.buaa.project.common.consts.RedisCacheConstants.QUESTION_COLLECT_SET_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.QUESTION_CONTENT_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.QUESTION_COUNT_KEY;
+import static org.buaa.project.common.consts.RedisCacheConstants.QUESTION_LIKE_SET_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.QUESTION_LOCK_KEY;
 import static org.buaa.project.common.consts.SystemConstants.QUESTION_SCORE;
 import static org.buaa.project.common.enums.QAErrorCodeEnum.QUESTION_ACCESS_CONTROL_ERROR;
@@ -147,14 +149,12 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
                     }
                     question = JSON.toJSONString(questionDO);
                     stringRedisTemplate.opsForValue().set(QUESTION_CONTENT_KEY + id, question, 1, TimeUnit.HOURS);
-                } else {
-                    questionDO = BeanUtil.toBean(BeanUtil.toBean(question, HashMap.class), QuestionDO.class);
                 }
             } finally {
                 lock.unlock();
             }
         }
-
+        questionDO = JSON.parseObject(question, QuestionDO.class);
         QuestionRespDTO result = new QuestionRespDTO();
         BeanUtils.copyProperties(questionDO, result);
 
@@ -163,9 +163,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         // 更新最后一次浏览时间
         userActionService.updateLastViewTime(userId, EntityTypeEnum.QUESTION, id);
 
-        String likeStatus = UserContext.getUsername() == null ? "未登录" : userActionService.getUserAction(userId, EntityTypeEnum.QUESTION, id).getLikeStat() == 1 ?  "已点赞" : "未点赞";
+        String likeStatus = UserContext.getUsername() == null ? "未登录" : Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(QUESTION_LIKE_SET_KEY + id, userId.toString())) ?   "已点赞" : "未点赞";
         result.setLikeStatus(likeStatus);
-        String collectStatus = UserContext.getUsername() == null ? "未登录" : userActionService.getUserAction(userId, EntityTypeEnum.QUESTION, id).getCollectStat() == 1 ? "已收藏" : "未收藏";
+        String collectStatus = UserContext.getUsername() == null ? "未登录" : Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(QUESTION_COLLECT_SET_KEY + id, userId.toString())) ? "已收藏" : "未收藏";
         result.setCollectStatus(collectStatus);
 
         // 填充计数信息
