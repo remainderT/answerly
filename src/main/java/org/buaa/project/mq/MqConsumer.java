@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.buaa.project.common.convention.exception.ServiceException;
 import org.buaa.project.common.enums.EntityTypeEnum;
 import org.buaa.project.common.enums.MessageTypeEnum;
-import org.buaa.project.common.web.WebSocketServer;
+import org.buaa.project.controller.WebSocketServer;
 import org.buaa.project.dao.entity.CommentDO;
 import org.buaa.project.dao.entity.MessageDO;
 import org.buaa.project.dao.entity.QuestionDO;
@@ -58,7 +58,7 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
 
     private final EsService esService;
 
-    private final WebSocketServer webSocketServer;
+//    private final WebSocketServer webSocketServer;
 
 
     @Value("${elasticsearch.index-name}")
@@ -194,16 +194,16 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
                         .generateId(event.getGenerateId())
                         .build();
                 messageMapper.insert(messageDO);
-                try {
-                    //只针对在线用户推送
-                    webSocketServer.sendMessageToUser(
-                            to.getId().toString(),  // 目标用户 ID
-                            content                // 消息内容
-                    );
-                    log.info("实时消息已推送给用户 {}: {}", to.getId(), content);
-                } catch (Exception e) {
-                    log.error("WebSocket 推送失败: {}", e.getMessage(), e);
-                }
+//                try {
+//                    //只针对在线用户推送
+//                    webSocketServer.sendMessageToUser(
+//                            to.getId().toString(),  // 目标用户 ID
+//                            content                // 消息内容
+//                    );
+//                    log.info("实时消息已推送给用户 {}: {}", to.getId(), content);
+//                } catch (Exception e) {
+//                    log.error("WebSocket 推送失败: {}", e.getMessage(), e);
+//                }
 
 
             } else {
