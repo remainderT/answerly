@@ -1,7 +1,7 @@
 package org.buaa.project.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -14,11 +14,18 @@ import org.buaa.project.dto.req.category.CategoryCreateReqDTO;
 import org.buaa.project.dto.req.category.CategoryUpdateReqDTO;
 import org.buaa.project.dto.resp.CategoryRespDTO;
 import org.buaa.project.service.CategoryService;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import static org.buaa.project.common.consts.RedisCacheConstants.CATEGORY_CONTENT_KEY;
+import static org.buaa.project.common.consts.RedisCacheConstants.CATEGORY_LOCK_KEY;
 import static org.buaa.project.common.enums.QAErrorCodeEnum.CATEGORY_ACCESS_CONTROL_ERROR;
 
 /**
@@ -30,11 +37,14 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, CategoryDO>
 
     private final StringRedisTemplate stringRedisTemplate;
 
+    private final RedissonClient redissonClient;
+
     @Override
     public void addCategory(CategoryCreateReqDTO requestParam) {
         checkIsAdmin();
         CategoryDO categoryDO = BeanUtil.toBean(requestParam, CategoryDO.class);
         baseMapper.insert(categoryDO);
+        stringRedisTemplate.opsForSet().add(CATEGORY_CONTENT_KEY, JSONUtil.toJsonStr(categoryDO));
     }
 
     @Override
@@ -45,6 +55,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, CategoryDO>
         CategoryDO categoryDO = new CategoryDO();
         categoryDO.setDelFlag(1);
         baseMapper.update(categoryDO, queryWrapper);
+        stringRedisTemplate.opsForSet().remove(CATEGORY_CONTENT_KEY, JSONUtil.toJsonStr(categoryDO));
     }
 
     @Override
@@ -53,16 +64,30 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, CategoryDO>
         LambdaUpdateWrapper<CategoryDO> queryWrapper = Wrappers.lambdaUpdate(CategoryDO.class)
                 .eq(CategoryDO::getId, requestParam.getId());
         CategoryDO categoryDO = BeanUtil.toBean(requestParam, CategoryDO.class);
+        stringRedisTemplate.opsForSet().remove(CATEGORY_CONTENT_KEY, JSONUtil.toJsonStr(categoryDO));
         baseMapper.update(categoryDO, queryWrapper);
+        stringRedisTemplate.opsForSet().add(CATEGORY_CONTENT_KEY, JSONUtil.toJsonStr(categoryDO));
     }
 
     @Override
     public List<CategoryRespDTO> listCategory() {
-        LambdaQueryWrapper<CategoryDO> queryWrapper = Wrappers.lambdaQuery(CategoryDO.class)
-                .eq(CategoryDO::getDelFlag, 0)
-                .orderByAsc(CategoryDO::getSort, CategoryDO::getUpdateTime);
-        List<CategoryDO> groupDOList = baseMapper.selectList(queryWrapper);
-        return BeanUtil.copyToList(groupDOList, CategoryRespDTO.class);
+        Set<String> categorys = stringRedisTemplate.opsForSet().members(CATEGORY_CONTENT_KEY);
+        if (Objects.isNull(categorys) || categorys.isEmpty()) {
+            RLock lock = redissonClient.getLock(CATEGORY_LOCK_KEY);
+            lock.lock();
+            try {
+                categorys = stringRedisTemplate.opsForSet().members(CATEGORY_CONTENT_KEY);
+                if (Objects.isNull(categorys) || categorys.isEmpty()) {
+                    baseMapper.selectList(null).forEach(
+                            category -> stringRedisTemplate.opsForSet().add(CATEGORY_CONTENT_KEY, JSONUtil.toJsonStr(category)));
+                }
+            } finally {
+                lock.unlock();
+            }
+        }
+        return categorys.stream()
+                .map(json -> JSONUtil.toBean(json, CategoryRespDTO.class))
+                .collect(Collectors.toList());
     }
 
     private void checkIsAdmin(){
