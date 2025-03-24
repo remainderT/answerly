@@ -43,12 +43,12 @@ CREATE TABLE `category` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='分类';
 INSERT INTO `category` (`name`, `image`, `sort`, `create_time`, `update_time`, `del_flag`)
 VALUES
-    ('数分', '2024/12/24/b0a6c100-32af-4504-89a9-29cb05203dec.png', 1, NOW(), NOW(), 0),
-    ('高代', '2024/12/24/a7878499-783c-40a2-858c-bb0316fd1ef2.png', 2, NOW(), NOW(), 0),
-    ('程设', '2024/12/24/864a86f5-820d-44d9-b15b-c142786df927.png', 3, NOW(), NOW(), 0),
-    ('离散数学', '2024/12/24/378afb3f-f45a-4bc6-8a51-84172c3ae9c1.png', 4, NOW(), NOW(), 0),
-    ('基础物理', '2024/12/24/9b8c8c64-4ba7-434b-a84a-901cbe9ae44f.png', 5, NOW(), NOW(), 0),
-    ('数据结构', '2024/12/24/bc689a02-dd16-4bfd-a749-82b16d10e4ff.png', 6, NOW(), NOW(), 0);
+    ('数分', '2025/03/24/7f455906-0e4a-4337-9c60-8ebab56c3d93.png', 1, NOW(), NOW(), 0),
+    ('高代', '2025/03/24/737b4c5c-1667-4062-915d-c298c805077b.png', 2, NOW(), NOW(), 0),
+    ('程设', '2025/03/24/a3ece88c-cbe9-4ee1-8b21-7d6e23c3e316.png', 3, NOW(), NOW(), 0),
+    ('离散数学', '2025/03/24/abbc9f42-21fe-4ffd-8f98-b5c954ef8898.png', 4, NOW(), NOW(), 0),
+    ('基础物理', '2025/03/24/c64c646f-a3e7-4669-813c-4f9ccc288556.png', 5, NOW(), NOW(), 0),
+    ('数据结构', '2025/03/24/1a55f960-5a53-4539-882f-9fa91c793768.png', 6, NOW(), NOW(), 0);
 
 
 DROP TABLE IF EXISTS `question`;
