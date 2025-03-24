@@ -26,7 +26,6 @@ public interface QuestionService extends IService<QuestionDO> {
      */
     void uploadQuestion(QuestionUploadReqDTO requestParam);
 
-
     /**
      * 修改题目
      */

@@ -76,6 +76,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         QuestionDO question = BeanUtil.toBean(requestParam, QuestionDO.class);
         question.setUserId(UserContext.getUserId());
         question.setUsername(UserContext.getUsername());
+        question.setSolvedFlag(0);
         baseMapper.insert(question);
         redisCount.zIncr(ACTIVITY_SCORE_KEY, UserContext.getUserId().toString(), QUESTION_SCORE);
 
@@ -129,6 +130,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         QuestionDO question = baseMapper.selectById(requestParam.getId());
         question.setSolvedFlag(1);
         baseMapper.updateById(question);
+        dataSync(question, MessageTypeEnum.UPDATE);
         //todo 用户解决问题数如何去定义
     }
 
