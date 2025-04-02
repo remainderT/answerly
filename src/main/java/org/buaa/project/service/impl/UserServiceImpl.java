@@ -171,6 +171,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
     @Override
     public UserLoginRespDTO login(UserLoginReqDTO requestParam, ServletRequest request) {
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        Cookie[] cookies = httpRequest.getCookies();
+        String captchaOwner = "";
+        if (cookies != null) {
+            captchaOwner = Arrays.stream(cookies)
+                    .filter(cookie -> "CaptchaOwner".equals(cookie.getName()))
+                    .findFirst()
+                    .map(Cookie::getValue)
+                    .orElse(null);
+        }
+
+        String code = stringRedisTemplate.opsForValue().get(USER_LOGIN_CAPTCHA_KEY + captchaOwner);
+        if (StrUtil.isBlank(code) || !code.equalsIgnoreCase(requestParam.getCode())) {
+            throw new ClientException(USER_LOGIN_CAPTCHA_ERROR);
+        }
+
         if (!hasUsername(requestParam.getUsername())) {
             throw new ClientException(USER_NAME_NULL);
         }
@@ -183,21 +199,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             throw new ClientException(USER_PASSWORD_ERROR);
         }
 
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
-        Cookie[] cookies = httpRequest.getCookies();
-        String captchaOwner = "";
-        if (cookies != null) {
-           captchaOwner = Arrays.stream(cookies)
-                .filter(cookie -> "CaptchaOwner".equals(cookie.getName()))
-                .findFirst()
-                .map(Cookie::getValue)
-                .orElse(null);
-        }
 
-        String code = stringRedisTemplate.opsForValue().get(USER_LOGIN_CAPTCHA_KEY + captchaOwner);
-        if (StrUtil.isBlank(code) || !code.equalsIgnoreCase(requestParam.getCode())) {
-            throw new ClientException(USER_LOGIN_CAPTCHA_ERROR);
-        }
 
         /**
          * String
