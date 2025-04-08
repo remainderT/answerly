@@ -42,6 +42,11 @@ public class CommentPageRespDTO {
     private String username;
 
     /**
+     * usertype
+     */
+    private String usertype;
+
+    /**
      * 头像
      */
     private String avatar;
