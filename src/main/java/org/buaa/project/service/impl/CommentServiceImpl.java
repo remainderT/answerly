@@ -141,6 +141,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
             UserDO userDO = JSON.parseObject(userJson, UserDO.class);
             CommentPageRespDTO CommentPageRespDTO = BeanUtil.copyProperties(commentDO, CommentPageRespDTO.class);
             CommentPageRespDTO.setAvatar(userDO.getAvatar());
+            CommentPageRespDTO.setUsertype(userDO.getUserType());
             CommentPageRespDTO.setLikeCount(redisCount.hGet(COMMENT_COUNT_KEY + commentDO.getId(), "like"));
             String likeStatus = Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(COMMENT_LIKE_SET_KEY + commentDO.getId(), UserContext.getUserId().toString())) ? "已点赞" : "未点赞";
             CommentPageRespDTO.setLikeStatus(likeStatus);
@@ -204,6 +205,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
         CommentPageRespDTO commentPageRespDTO = BeanUtil.copyProperties(commentDO, CommentPageRespDTO.class);
         commentTo.ifPresent(commentPageRespDTO::setCommentTo);
         commentPageRespDTO.setAvatar(userDO.getAvatar());
+        commentPageRespDTO.setUsertype(userDO.getUserType());
         commentPageRespDTO.setLikeCount(redisCount.hGet(COMMENT_COUNT_KEY + commentDO.getId(), "like"));
         String likeStatus = UserContext.getUsername() == null ? "未登录" :
                 Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(COMMENT_LIKE_SET_KEY + commentDO.getId(), UserContext.getUserId().toString())) ? "已点赞" : "未点赞";

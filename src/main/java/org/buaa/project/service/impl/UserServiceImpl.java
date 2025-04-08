@@ -30,6 +30,7 @@ import org.buaa.project.dto.resp.UserRespDTO;
 import org.buaa.project.mq.MqEvent;
 import org.buaa.project.mq.MqProducer;
 import org.buaa.project.service.UserService;
+import org.buaa.project.toolkit.ExcelUtils;
 import org.buaa.project.toolkit.RandomGenerator;
 import org.buaa.project.toolkit.RedisCount;
 import org.redisson.api.RLock;
@@ -72,6 +73,8 @@ import static org.buaa.project.common.enums.UserErrorCodeEnum.USER_PASSWORD_ERRO
 import static org.buaa.project.common.enums.UserErrorCodeEnum.USER_SAVE_ERROR;
 import static org.buaa.project.common.enums.UserErrorCodeEnum.USER_TOKEN_NULL;
 import static org.buaa.project.common.enums.UserErrorCodeEnum.USER_UPDATE_ERROR;
+import static org.buaa.project.common.enums.UserTypeEnum.STUDENT;
+import static org.buaa.project.common.enums.UserTypeEnum.VOLUNTEER;
 
 /**
  * 用户接口实现层
@@ -89,6 +92,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     private final RedisCount redisCount;
 
     private final MqProducer producer;
+
+    private final ExcelUtils excelUtils;
 
     @Value("${spring.mail.username}")
     private String from;
@@ -154,6 +159,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             UserDO userDO = BeanUtil.toBean(requestParam, UserDO.class);
             userDO.setSalt(UUID.randomUUID().toString().substring(0, 5));
             userDO.setPassword(DigestUtils.md5DigestAsHex((userDO.getPassword() + userDO.getSalt()).getBytes()));
+            userDO.setUserType(excelUtils.isVolunteer(userDO.getMail().substring(0, 8)) ? VOLUNTEER.toString() : STUDENT.toString());
             int inserted = baseMapper.insert(userDO);
             if (inserted < 1) {
                 throw new ClientException(USER_SAVE_ERROR);
@@ -198,8 +204,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         if (!Objects.equals(userDO.getPassword(), password)) {
             throw new ClientException(USER_PASSWORD_ERROR);
         }
-
-
 
         /**
          * String
