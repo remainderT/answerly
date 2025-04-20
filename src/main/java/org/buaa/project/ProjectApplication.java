@@ -7,11 +7,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @MapperScan("org.buaa.project.dao.mapper")
-@ComponentScan(basePackages = {"org.buaa.project", "org.buaa.project.config"})
 public class ProjectApplication {
 
     public static void main(String[] args) {
