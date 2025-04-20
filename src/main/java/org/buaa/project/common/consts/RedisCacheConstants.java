@@ -46,6 +46,21 @@ public class RedisCacheConstants {
     public static final String COMMENT_COUNT_KEY = "answerly:comment:count:";
 
     /**
+     * 题目点赞集合
+     */
+    public static final String QUESTION_LIKE_SET_KEY = "answerly:question:like:";
+
+    /**
+     * 题目收藏集合
+     */
+    public static final String QUESTION_COLLECT_SET_KEY = "answerly:question:collect:";
+
+    /**
+     * 评论点赞集合
+     */
+    public static final String COMMENT_LIKE_SET_KEY = "answerly:comment:like:";
+
+    /**
      * 用户统计信息缓存标识
      */
     public static final String USER_COUNT_KEY = "answerly:user:count:";
@@ -119,5 +134,10 @@ public class RedisCacheConstants {
      * 签到
      */
     public static final String USER_SIGN = "answerly:user:sign";
+
+    /**
+     * 用户行为分布式锁
+     */
+    public static final String USER_ACTION_KEY = "answerly:user:action:";
 
 }

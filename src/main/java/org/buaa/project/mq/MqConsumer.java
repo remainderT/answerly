@@ -133,7 +133,6 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
             CommentDO comment = null;
             QuestionDO question = null;
             String content = null;
-            UserDO to = userMapper.selectById(event.getEntityUserId());
             MessageTypeEnum messageType = event.getMessageType();
             Boolean isPositive = (Boolean) event.getData().get("isPositive");
             if (!Objects.equals(isPositive, false)) {
@@ -141,16 +140,12 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
                     case LIKE:
                         if (event.getEntityType().equals(EntityTypeEnum.COMMENT)) {
                             comment = commentMapper.selectById(event.getEntityId());
-                            commentMapper.updateById(comment);
                             question = questionMapper.selectById(comment.getQuestionId());
                             content = "(%s)点赞了你在(%s)问题下的(%s)评论".formatted(from.getUsername(), question.getTitle(), comment.getContent());
                         } else if (event.getEntityType().equals(EntityTypeEnum.QUESTION)) {
                             question = questionMapper.selectById(event.getEntityId());
-                            questionMapper.updateById(question);
                             content = "(%s)点赞了你的(%s)问题".formatted(from.getUsername(), question.getTitle());
                         }
-                        to.setLikeCount(to.getLikeCount() + 1);
-                        userMapper.updateById(to);
                         break;
 
                     case COMMENT:
