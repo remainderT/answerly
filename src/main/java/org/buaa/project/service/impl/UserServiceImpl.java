@@ -1,5 +1,4 @@
 package org.buaa.project.service.impl;
-
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.StrUtil;
@@ -63,15 +62,7 @@ import static org.buaa.project.common.consts.RedisCacheConstants.USER_REGISTER_C
 import static org.buaa.project.common.consts.RedisCacheConstants.USER_REGISTER_LOCK_KEY;
 import static org.buaa.project.common.consts.SystemConstants.SYSTEM_MESSAGE_ID;
 import static org.buaa.project.common.enums.ServiceErrorCodeEnum.MAIL_SEND_ERROR;
-import static org.buaa.project.common.enums.UserErrorCodeEnum.USER_CODE_ERROR;
-import static org.buaa.project.common.enums.UserErrorCodeEnum.USER_EXIST;
-import static org.buaa.project.common.enums.UserErrorCodeEnum.USER_LOGIN_CAPTCHA_ERROR;
-import static org.buaa.project.common.enums.UserErrorCodeEnum.USER_NAME_EXIST;
-import static org.buaa.project.common.enums.UserErrorCodeEnum.USER_NAME_NULL;
-import static org.buaa.project.common.enums.UserErrorCodeEnum.USER_PASSWORD_ERROR;
-import static org.buaa.project.common.enums.UserErrorCodeEnum.USER_SAVE_ERROR;
-import static org.buaa.project.common.enums.UserErrorCodeEnum.USER_TOKEN_NULL;
-import static org.buaa.project.common.enums.UserErrorCodeEnum.USER_UPDATE_ERROR;
+import static org.buaa.project.common.enums.UserErrorCodeEnum.*;
 
 /**
  * 用户接口实现层
@@ -118,6 +109,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     }
 
     @Override
+    public Boolean hasMail(String mail){
+        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
+                .eq(UserDO::getMail, mail);
+        UserDO userDO = baseMapper.selectOne(queryWrapper);
+        return userDO != null;
+    }
+    @Override
     public Boolean sendCode(String mail) {
         SimpleMailMessage message = new SimpleMailMessage();
         String code = RandomGenerator.generateSixDigitCode();
@@ -145,6 +143,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         }
         if (hasUsername(requestParam.getUsername())) {
             throw new ClientException(USER_NAME_EXIST);
+        }
+        if (hasMail(requestParam.getMail())) {
+            throw new ClientException(USER_MAIL_EXIST);
         }
         RLock lock = redissonClient.getLock(USER_REGISTER_LOCK_KEY + requestParam.getUsername());
         if (!lock.tryLock()) {
