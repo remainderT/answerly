@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.buaa.project.common.convention.exception.ServiceException;
 import org.buaa.project.common.enums.EntityTypeEnum;
 import org.buaa.project.common.enums.MessageTypeEnum;
-import org.buaa.project.common.web.WebSocketServer;
+import org.buaa.project.common.web.WebSocketHandler;
 import org.buaa.project.dao.entity.CommentDO;
 import org.buaa.project.dao.entity.MessageDO;
 import org.buaa.project.dao.entity.QuestionDO;
@@ -58,7 +58,7 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
 
     private final EsService esService;
 
-    private final WebSocketServer webSocketServer;
+    private final WebSocketHandler webSocketHandler;
 
 
     @Value("${elasticsearch.index-name}")
@@ -196,7 +196,7 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
                 messageMapper.insert(messageDO);
                 try {
                     //只针对在线用户推送
-                    webSocketServer.sendMessageToUser(
+                    webSocketHandler.sendMessageToUser(
                             to.getId().toString(),  // 目标用户 ID
                             content                // 消息内容
                     );
