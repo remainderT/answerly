@@ -30,6 +30,7 @@ import java.util.HashMap;
 
 import static org.buaa.project.common.consts.RedisCacheConstants.ACTIVITY_SCORE_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.COMMENT_COUNT_KEY;
+import static org.buaa.project.common.consts.RedisCacheConstants.COMMENT_LIKE_SET_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.QUESTION_COLLECT_SET_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.QUESTION_COUNT_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.QUESTION_LIKE_SET_KEY;
@@ -74,6 +75,9 @@ public class UserActionServiceImpl extends ServiceImpl<UserActionMapper, UserAct
                     .userId(userId)
                     .entityType(entityType.type())
                     .entityId(entityId)
+                    .likeStat(0)
+                    .collectStat(0)
+                    .collectStat(0)
                     .build();
             baseMapper.insert(userActionDO);
             redisCount.zIncr(ACTIVITY_SCORE_KEY , userId.toString(), VIEW_SCORE);
@@ -142,9 +146,9 @@ public class UserActionServiceImpl extends ServiceImpl<UserActionMapper, UserAct
                         commentMapper.updateById(comment);
                         redisCount.hIncr(COMMENT_COUNT_KEY + entityId, "like", isPositive ? 1 : -1);
                         if (isPositive) {
-                            stringRedisTemplate.opsForSet().add(QUESTION_LIKE_SET_KEY + entityId, userId.toString());
+                            stringRedisTemplate.opsForSet().add(COMMENT_LIKE_SET_KEY + entityId, userId.toString());
                         } else {
-                            stringRedisTemplate.opsForSet().remove(QUESTION_LIKE_SET_KEY + entityId, userId.toString());
+                            stringRedisTemplate.opsForSet().remove(COMMENT_LIKE_SET_KEY + entityId, userId.toString());
                         }
                     }
                     redisCount.zIncr(ACTIVITY_SCORE_KEY , userId.toString(), isPositive ? LIKE_SCORE: -LIKE_SCORE);
