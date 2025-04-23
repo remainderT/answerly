@@ -28,6 +28,10 @@ public interface UserService extends IService<UserDO> {
     Boolean hasUsername(String username);
 
     /**
+     *  查询邮箱是否已注册
+     */
+    Boolean hasMail(String email);
+    /**
      * 发送验证码
      */
     Boolean sendCode(String mail);

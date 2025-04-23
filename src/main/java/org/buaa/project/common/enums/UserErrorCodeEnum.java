@@ -33,6 +33,8 @@ public enum UserErrorCodeEnum implements IErrorCode {
 
     USER_CODE_ERROR("A000104", "验证码错误"),
 
+    USER_MAIL_EXIST("A00105", "邮箱已被注册"),
+
     USER_NAME_NULL("A000201", "用户名不存在"),
 
     USER_PASSWORD_ERROR("A000202", "密码错误"),
