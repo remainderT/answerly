@@ -31,6 +31,11 @@ public class UserRespDTO {
     private String introduction;
 
     /**
+     * 用户类型
+     */
+    private String userType;
+
+    /**
      * 点赞数
      */
     private Integer likeCount;

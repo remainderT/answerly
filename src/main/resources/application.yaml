@@ -30,10 +30,10 @@ spring:
     protocol: smtps
     host: smtp.163.com
     port: 465
-    username: 18967220636@163.com
-    password: UUvD283xqxYEKyAi
+    username: buaa_yzd@163.com
+    password: RBdFP4r9FfXcJazi
     default-encoding: UTF-8
-    from: 18967220636@163.com
+    from: buaa_yzd@163.com
     properties:
       mail.smtp.socketFactoryClass: javax.net.ssl.SSLSocketFactory
 

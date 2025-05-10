@@ -41,6 +41,11 @@ public class QuestionRespDTO {
     private Long userId;
 
     /**
+     * 发布人名字
+     */
+    private String username;
+
+    /**
      * 浏览量
      */
     private Integer viewCount;
