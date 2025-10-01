@@ -9,9 +9,9 @@ import org.springframework.web.multipart.MultipartFile;
 public interface ImageService {
 
     /**
-     * oss上传图片
+     * cos上传图片
      */
-    String ossUploadImage(MultipartFile file);
+    String cosUploadImage(MultipartFile file);
 
     /**
      * 生成验证码用于显示，并把结果存入session中.

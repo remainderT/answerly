@@ -23,14 +23,13 @@
         <hutool-all.version>5.8.20</hutool-all.version>
         <redisson.version>3.21.3</redisson.version>
         <guava.version>30.0-jre</guava.version>
-        <aliyun-sdk-oss.version>3.15.1</aliyun-sdk-oss.version>
         <jackson-databind.version>2.13.4</jackson-databind.version>
         <jackson-datatype-jsr310.version>2.13.4</jackson-datatype-jsr310.version>
         <kaptcha.version>2.3.2</kaptcha.version>
-        <xxl-job-core.version>2.3.1</xxl-job-core.version>
         <rest-high-level-client.version>7.17.10</rest-high-level-client.version>
         <elasticsearch-client.version>7.17.10</elasticsearch-client.version>
         <poi-ooxml.version>5.2.3</poi-ooxml.version>
+        <com.qcloud.version>5.6.54</com.qcloud.version>
     </properties>
 
     <dependencies>
@@ -96,9 +95,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.aliyun.oss</groupId>
-            <artifactId>aliyun-sdk-oss</artifactId>
-            <version>${aliyun-sdk-oss.version}</version>
+            <groupId>com.qcloud</groupId>
+            <artifactId>cos_api</artifactId>
+            <version>${com.qcloud.version}</version>
         </dependency>
 
         <dependency>
@@ -132,12 +131,6 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.xuxueli</groupId>
-            <artifactId>xxl-job-core</artifactId>
-            <version>${xxl-job-core.version}</version>
         </dependency>
 
         <dependency>
