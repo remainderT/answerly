@@ -1,7 +1,7 @@
 package org.buaa.project.toolkit.scheduled;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.xxl.job.core.handler.annotation.XxlJob;
+import org.springframework.scheduling.annotation.Scheduled;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.buaa.project.dao.entity.CategoryDO;
@@ -35,7 +35,7 @@ public class HotQuestion {
     private final CategoryMapper categoryMapper;
 
 
-    @XxlJob("hotQuestion")
+    @Scheduled(cron = "0 */10 * * * ?") // 每10分钟执行一次
     public void hotQuestion() {
         log.info("执行定时任务,执行时间:{}", new Date());
 

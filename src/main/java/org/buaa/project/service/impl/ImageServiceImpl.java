@@ -1,15 +1,17 @@
 package org.buaa.project.service.impl;
 
 import cn.hutool.core.util.StrUtil;
-import com.aliyun.oss.OSS;
-import com.aliyun.oss.OSSClientBuilder;
 import com.google.code.kaptcha.Producer;
+import com.qcloud.cos.COSClient;
+import com.qcloud.cos.model.ObjectMetadata;
+import com.qcloud.cos.model.PutObjectRequest;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.buaa.project.common.convention.exception.ServiceException;
 import org.buaa.project.service.ImageService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -36,25 +38,25 @@ public class ImageServiceImpl implements ImageService {
 
     private final StringRedisTemplate redisTemplate;
 
-    @Value("${spring.aliyun.oss.endpoint}")
-    private String endpoint;
-    @Value("${spring.aliyun.oss.accessKeyId}")
-    private String accessKeyId;
-    @Value("${spring.aliyun.oss.accessKeySecret}")
-    private String accessKeySecret;
-    @Value("${spring.aliyun.oss.bucketName}")
+    @Autowired
+    private COSClient cosClient;
+
+    @Value("${tencent.cos.bucketName}")
     private String bucketName;
 
-    public String ossUploadImage(MultipartFile file) {
-        try {
-            InputStream inputStream = file.getInputStream();
-            String fileName = createNewFileName(file.getOriginalFilename());
-            OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
-            ossClient.putObject(bucketName, fileName, inputStream);
-            ossClient.shutdown();
-            return fileName;
-        } catch (IOException e) {
-            throw new ServiceException(IMAGE_UPLOAD_ERROR);
+    public String cosUploadImage(MultipartFile file){
+        try (InputStream inputStream = file.getInputStream()) {
+            String key = createNewFileName(file.getOriginalFilename());
+            
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentLength(file.getSize());
+            metadata.setContentType(file.getContentType());
+            
+            PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, inputStream, metadata);
+            cosClient.putObject(putObjectRequest);
+            return key;
+        } catch (Exception e) {
+            throw new ServiceException("COS上传异常: " + e.getMessage());
         }
     }
 

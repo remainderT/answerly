@@ -23,9 +23,9 @@ public class ImageController {
     /**
      * oss上传图片
      */
-    @PostMapping("/oss/upload")
-    public Result<String> ossUploadImage(@RequestParam("file") MultipartFile file) {
-        return Results.success(imageService.ossUploadImage(file));
+    @PostMapping("/cos/upload")
+    public Result<String> cosUploadImage(@RequestParam("file") MultipartFile file) {
+        return Results.success(imageService.cosUploadImage(file));
     }
 
     /**
