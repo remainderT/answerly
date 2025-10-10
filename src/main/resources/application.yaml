@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:mysql://43.143.231.162:3306/answerly?useSSL=false&serverTimezone=Asia/Shanghai
     username: root
-    password: 72232b47-815b-4e27-9df7-9e590ca32b71
+    password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       connection-test-query: select 1
@@ -21,18 +21,17 @@ spring:
     redis:
       host: 43.143.231.162
       port: 6379
-      password: 18747796-f035-4bb3-b51c-f8ac64890aea
 
   elasticsearch:
     username: elastic
-    password: elastic
+    password:
 
   mail:
     protocol: smtps
     host: smtp.163.com
     port: 465
     username: buaa_yzd@163.com
-    password: RBdFP4r9FfXcJazi
+    password:
     default-encoding: UTF-8
     from: buaa_yzd@163.com
     properties:
@@ -71,8 +70,8 @@ elasticsearch:
 
 tencent:
   cos:
-    secretId: AKIDiRxGMNDpHWZN3YrxqWzEH71zysgJjdPz
-    secretKey: Vo177vX6XovzxISSF9rMfldHjy61iEJS
+    secretId:
+    secretKey:
     region: ap-beijing
     bucketName: yuanzhida-cos-1352975306
 
