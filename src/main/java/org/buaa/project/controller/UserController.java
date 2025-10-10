@@ -7,6 +7,7 @@ import org.buaa.project.common.convention.result.Result;
 import org.buaa.project.common.convention.result.Results;
 import org.buaa.project.dto.req.user.UserLoginReqDTO;
 import org.buaa.project.dto.req.user.UserRegisterReqDTO;
+import org.buaa.project.dto.req.user.UserResetPwdReqDTO;
 import org.buaa.project.dto.req.user.UserUpdateReqDTO;
 import org.buaa.project.dto.resp.UserActivityRankRespDTO;
 import org.buaa.project.dto.resp.UserActualRespDTO;
@@ -69,7 +70,7 @@ public class UserController {
     /**
      * 注册用户
      */
-    @PostMapping("/api/answerly/v1/user")
+    @GetMapping("/api/answerly/v1/user")
     public Result<Void> register(@RequestBody UserRegisterReqDTO requestParam) {
         userService.register(requestParam);
         return Results.success();
@@ -125,5 +126,27 @@ public class UserController {
         return Results.success(userService.activityScore());
     }
 
+    /**
+     * 找回用户名
+     */
+    @GetMapping("/api/answerly/v1/user/forget-username")
+    public Result<Boolean> forgetUsername(@RequestParam("mail") String mail) {
+        return Results.success(userService.forgetUsername(mail));
+    }
+
+    /**
+     * 重置密码验证码
+     */
+    @GetMapping("/api/answerly/v1/user/send-reset-password-code")
+    public Result<Boolean> resetPasswordCode(@RequestParam("mail") String mail) {
+        return Results.success(userService.sendResetPasswordCode(mail));
+    }
+    /**
+     * 重置密码
+     */
+    @PostMapping("/api/answerly/v1/user/reset-password")
+    public Result<Boolean> resetPassword(@RequestBody UserResetPwdReqDTO requestParam) {
+        return Results.success(userService.resetPassword(requestParam));
+    }
 }
 
