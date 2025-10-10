@@ -70,7 +70,7 @@ public class UserController {
     /**
      * 注册用户
      */
-    @GetMapping("/api/answerly/v1/user")
+    @PostMapping("/api/answerly/v1/user")
     public Result<Void> register(@RequestBody UserRegisterReqDTO requestParam) {
         userService.register(requestParam);
         return Results.success();
