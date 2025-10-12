@@ -5,6 +5,7 @@ import jakarta.servlet.ServletRequest;
 import org.buaa.project.dao.entity.UserDO;
 import org.buaa.project.dto.req.user.UserLoginReqDTO;
 import org.buaa.project.dto.req.user.UserRegisterReqDTO;
+import org.buaa.project.dto.req.user.UserResetPwdReqDTO;
 import org.buaa.project.dto.req.user.UserUpdateReqDTO;
 import org.buaa.project.dto.resp.UserActivityRankRespDTO;
 import org.buaa.project.dto.resp.UserLoginRespDTO;
@@ -71,4 +72,18 @@ public interface UserService extends IService<UserDO> {
      */
     Integer activityScore();
 
+    /**
+     * 找回用户名
+     */
+    Boolean forgetUsername(String mail);
+
+    /**
+     * 发送重置密码验证码
+     */
+    Boolean sendResetPasswordCode(String mail);
+
+    /**
+     * 重置密码
+     */
+    Boolean resetPassword(UserResetPwdReqDTO requestParam);
 }

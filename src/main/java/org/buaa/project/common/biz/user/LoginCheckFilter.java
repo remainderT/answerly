@@ -35,7 +35,10 @@ public class LoginCheckFilter implements Filter {
             "/actuator", //监控
             "/actuator/prometheus",
             "/api/answerly/v1/question/hot", //热门问题
-            "/api/answerly/v1/question/suggest" //补全
+            "/api/answerly/v1/question/suggest", //补全
+            "/api/answerly/v1/user/forget-username",//忘记用户名
+            "/api/answerly/v1/user/send-reset-password-code",//忘记密码发送验证码
+            "/api/answerly/v1/user/reset-password"//忘记密码重置密码
     );
 
     private boolean requireLogin(String URI, String method) {
