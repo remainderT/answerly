@@ -9,11 +9,4 @@ import org.apache.ibatis.annotations.Select;
  */
 public interface UserMapper extends BaseMapper<UserDO> {
 
-    // 根据邮箱查询用户名
-    @Select("SELECT username FROM user WHERE mail = #{mail} AND del_flag = 0")
-    String selectUsernameByMail(@Param("mail") String mail);
-
-    // 根据用户名查询邮箱
-    @Select("SELECT mail FROM user WHERE username = #{username} AND del_flag = 0")
-    String selectMailByUsername(@Param("username") String username);
 }

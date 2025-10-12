@@ -312,7 +312,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     @Override
     public Boolean forgetUsername(String mail) {
         SimpleMailMessage message = new SimpleMailMessage();
-        String username = baseMapper.selectUsernameByMail(mail);
+        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
+                .select(UserDO::getUsername)
+                .eq(UserDO::getMail, mail);
+        UserDO user = baseMapper.selectOne(queryWrapper);
+        if (user == null) {
+            throw new ServiceException(USER_NULL);
+        }
+        String username = user.getUsername();
         message.setFrom(from);
         message.setText(String.format(MailSendConstants.FORGET_TEXT, username));
         message.setTo(mail);
