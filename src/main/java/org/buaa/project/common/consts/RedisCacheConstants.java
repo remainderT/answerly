@@ -21,6 +21,16 @@ public class RedisCacheConstants {
     public static final long USER_REGISTER_CODE_EXPIRE_KEY = 5L;
 
     /**
+     * 用户重置密码验证码缓存
+     */
+    public static final String USER_RESET_CODE_KEY = "answerly:user:reset:code:";
+
+    /**
+     * 用户重置密码验证码缓存过期时间
+     */
+    public static final long USER_RESET_CODE_EXPIRE_KEY = 5L;
+
+    /**
      * 用户登录缓存标识
      */
     public static final String USER_LOGIN_KEY = "answerly:user:login:";
