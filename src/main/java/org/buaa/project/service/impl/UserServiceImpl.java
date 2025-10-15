@@ -22,6 +22,7 @@ import org.buaa.project.dao.entity.UserDO;
 import org.buaa.project.dao.mapper.UserMapper;
 import org.buaa.project.dto.req.user.UserLoginReqDTO;
 import org.buaa.project.dto.req.user.UserRegisterReqDTO;
+import org.buaa.project.dto.req.user.UserResetPwdReqDTO;
 import org.buaa.project.dto.req.user.UserUpdateReqDTO;
 import org.buaa.project.dto.resp.UserActivityRankRespDTO;
 import org.buaa.project.dto.resp.UserLoginRespDTO;
@@ -52,15 +53,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static org.buaa.project.common.consts.MailSendConstants.EMAIL_SUFFIX;
-import static org.buaa.project.common.consts.RedisCacheConstants.ACTIVITY_SCORE_KEY;
-import static org.buaa.project.common.consts.RedisCacheConstants.USER_COUNT_KEY;
-import static org.buaa.project.common.consts.RedisCacheConstants.USER_INFO_KEY;
-import static org.buaa.project.common.consts.RedisCacheConstants.USER_LOGIN_CAPTCHA_KEY;
-import static org.buaa.project.common.consts.RedisCacheConstants.USER_LOGIN_EXPIRE_KEY;
-import static org.buaa.project.common.consts.RedisCacheConstants.USER_LOGIN_KEY;
-import static org.buaa.project.common.consts.RedisCacheConstants.USER_REGISTER_CODE_EXPIRE_KEY;
-import static org.buaa.project.common.consts.RedisCacheConstants.USER_REGISTER_CODE_KEY;
-import static org.buaa.project.common.consts.RedisCacheConstants.USER_REGISTER_LOCK_KEY;
+import static org.buaa.project.common.consts.RedisCacheConstants.*;
 import static org.buaa.project.common.consts.SystemConstants.SYSTEM_MESSAGE_ID;
 import static org.buaa.project.common.enums.ServiceErrorCodeEnum.MAIL_SEND_ERROR;
 import static org.buaa.project.common.enums.UserErrorCodeEnum.USER_CODE_ERROR;
@@ -321,4 +314,84 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         producer.messageSend(event);
     }
 
+    @Override
+    public Boolean forgetUsername(String mail) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
+                .select(UserDO::getUsername)
+                .eq(UserDO::getMail, mail);
+        UserDO user = baseMapper.selectOne(queryWrapper);
+        if (user == null) {
+            throw new ServiceException(USER_NULL);
+        }
+        String username = user.getUsername();
+        message.setFrom(from);
+        message.setText(String.format(MailSendConstants.FORGET_TEXT, username));
+        message.setTo(mail);
+        message.setSubject(MailSendConstants.SUBJECT);
+        try {
+            mailSender.send(message);
+            return true;
+        } catch (Exception e) {
+            throw new ServiceException(MAIL_SEND_ERROR);
+        }
+    }
+
+    @Override
+    public Boolean sendResetPasswordCode(String mail) {
+        if (!hasMail(mail)) {
+            throw new ClientException(UserErrorCodeEnum.USER_NULL);
+        }
+        SimpleMailMessage message = new SimpleMailMessage();
+        String code = RandomGenerator.generateSixDigitCode();
+        message.setFrom(from);
+        message.setText(String.format(MailSendConstants.RESET_TEXT, code));
+        message.setTo(mail);
+        message.setSubject(MailSendConstants.SUBJECT);
+        try {
+            mailSender.send(message);
+            String key = USER_RESET_CODE_KEY + mail.replace(EMAIL_SUFFIX,"");
+            stringRedisTemplate.opsForValue().set(key, code, USER_RESET_CODE_EXPIRE_KEY, TimeUnit.MINUTES);
+            return true;
+        } catch (Exception e) {
+            throw new ServiceException(MAIL_SEND_ERROR);
+        }
+    }
+
+    @Override
+    public Boolean resetPassword(UserResetPwdReqDTO requestParam) {
+        // 1. 查用户
+        if(!hasUsername(requestParam.getUsername())){
+            throw new ClientException(UserErrorCodeEnum.USER_NULL);
+        }
+        UserDO userDO = baseMapper.selectOne(
+                Wrappers.lambdaQuery(UserDO.class).eq(UserDO::getUsername, requestParam.getUsername()));
+        if (userDO == null) {
+            throw new ClientException(UserErrorCodeEnum.USER_NULL);
+        }
+        // 2. 校验邮箱验证码（与发送时相同的 Key 规则）
+        String key = USER_RESET_CODE_KEY + userDO.getMail().replace(EMAIL_SUFFIX, "");
+        String cacheCode = stringRedisTemplate.opsForValue().get(key);
+        if (StrUtil.isBlank(cacheCode) || !cacheCode.equals(requestParam.getCode())) {
+            throw new ClientException(USER_CODE_ERROR);
+        }
+
+        // 3. 计算新密码哈希（MD5(明文 + 用户salt)）
+        String hashed = DigestUtils.md5DigestAsHex((requestParam.getNewPassword() + userDO.getSalt()).getBytes());
+
+        // 4. 覆盖保存密码
+        UserDO update = UserDO.builder().password(hashed).build();
+        baseMapper.update(update, Wrappers.lambdaUpdate(UserDO.class)
+                .eq(UserDO::getUsername, requestParam.getUsername()));
+
+        // 5. 清理验证码与登录态
+        stringRedisTemplate.delete(key);
+        stringRedisTemplate.delete(USER_LOGIN_KEY + requestParam.getUsername());
+
+        // 6. 刷新用户缓存
+        UserDO fresh = baseMapper.selectOne(
+                Wrappers.lambdaQuery(UserDO.class).eq(UserDO::getUsername, requestParam.getUsername()));
+        stringRedisTemplate.opsForValue().set(USER_INFO_KEY + requestParam.getUsername(), JSON.toJSONString(fresh));
+        return true;
+    }
 }
