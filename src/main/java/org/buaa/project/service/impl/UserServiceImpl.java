@@ -163,6 +163,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             userDO.setSalt(UUID.randomUUID().toString().substring(0, 5));
             userDO.setPassword(DigestUtils.md5DigestAsHex((userDO.getPassword() + userDO.getSalt()).getBytes()));
             userDO.setUserType(excelUtils.isVolunteer(userDO.getMail().substring(0, 8)) ? VOLUNTEER.toString() : STUDENT.toString());
+            userDO.setBanFlag(0);
             int inserted = baseMapper.insert(userDO);
             if (inserted < 1) {
                 throw new ClientException(USER_SAVE_ERROR);
@@ -206,6 +207,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         String password = DigestUtils.md5DigestAsHex((requestParam.getPassword() + userDO.getSalt()).getBytes());
         if (!Objects.equals(userDO.getPassword(), password)) {
             throw new ClientException(USER_PASSWORD_ERROR);
+        }
+
+        if(userDO.getBanFlag()!=0){
+            throw new ClientException(USER_BANNED);
         }
 
         /**

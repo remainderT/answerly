@@ -77,4 +77,9 @@ public class UserDO extends BaseDO {
      */
     private Integer status;
 
+    /**
+     * 封禁标识 0:未封禁 1:已封禁
+     */
+    private Integer banFlag;
+
 }
