@@ -96,6 +96,15 @@ public class MqConsumer implements StreamListener<String, MapRecord<String, Stri
         List<String> suggestion = esService.analyze(questionDO.getTitle());
         questionDOC.setSuggestion(suggestion);
         questionDOC.setId(questionDO.getId());
+        
+        // 获取发布者头像信息
+        if (questionDO.getUserId() != null) {
+            UserDO userDO = userMapper.selectById(questionDO.getUserId());
+            if (userDO != null) {
+                questionDOC.setAvatar(userDO.getAvatar());
+            }
+        }
+        
         try {
             switch (event.getMessageType()) {
                 case INSERT:

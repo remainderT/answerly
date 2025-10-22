@@ -21,7 +21,7 @@ public class ImageController {
     private final ImageService imageService;
 
     /**
-     * oss上传图片
+     * cos上传图片
      */
     @PostMapping("/cos/upload")
     public Result<String> cosUploadImage(@RequestParam("file") MultipartFile file) {

@@ -46,6 +46,21 @@ public class QuestionPageRespDTO {
     private Integer solvedFlag;
 
     /**
+     * 发布人id
+     */
+    private Long userId;
+
+    /**
+     * 发布人用户名
+     */
+    private String username;
+
+    /**
+     * 发布人头像
+     */
+    private String avatar;
+
+    /**
      * 日期
      */
     private Date createTime;
