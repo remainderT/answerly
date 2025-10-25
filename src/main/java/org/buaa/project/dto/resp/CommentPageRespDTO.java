@@ -80,4 +80,9 @@ public class CommentPageRespDTO {
      * 子评论
      */
     private List<CommentPageRespDTO> childComments;
+
+    /**
+     * 问题id
+     */
+    private Long questionId;
 }

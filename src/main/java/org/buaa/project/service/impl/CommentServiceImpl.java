@@ -140,6 +140,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, CommentDO> im
             String userJson = stringRedisTemplate.opsForValue().get(USER_INFO_KEY + username);
             UserDO userDO = JSON.parseObject(userJson, UserDO.class);
             CommentPageRespDTO CommentPageRespDTO = BeanUtil.copyProperties(commentDO, CommentPageRespDTO.class);
+            CommentPageRespDTO.setQuestionId(commentDO.getQuestionId());
             CommentPageRespDTO.setAvatar(userDO.getAvatar());
             CommentPageRespDTO.setUsertype(userDO.getUserType());
             CommentPageRespDTO.setLikeCount(redisCount.hGet(COMMENT_COUNT_KEY + commentDO.getId(), "like"));
