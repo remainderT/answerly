@@ -41,6 +41,11 @@ public class QuestionPageRespDTO {
     private Integer commentCount;
 
     /**
+     * 收藏数
+     */
+    private Integer collectCount;
+
+    /**
      * 是否解决 0：未解决 1：已解决
      */
     private Integer solvedFlag;

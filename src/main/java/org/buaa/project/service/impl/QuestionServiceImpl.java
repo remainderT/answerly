@@ -174,6 +174,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         result.setLikeCount(redisCount.hGet(QUESTION_COUNT_KEY + id, "like"));
         result.setViewCount(redisCount.hGet(QUESTION_COUNT_KEY + id, "view"));
         result.setCommentCount(redisCount.hGet(QUESTION_COUNT_KEY + id, "comment"));
+        result.setCollectCount(redisCount.hGet(QUESTION_COUNT_KEY + id, "collect"));
+
 
         // 更新浏览数
         redisCount.hIncr(QUESTION_COUNT_KEY + id, "view", 1);
@@ -241,6 +243,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, QuestionDO>
         dto.setLikeCount(redisCount.hGet(QUESTION_COUNT_KEY + dto.getId(), "like"));
         dto.setViewCount(redisCount.hGet(QUESTION_COUNT_KEY + dto.getId(), "view"));
         dto.setCommentCount(redisCount.hGet(QUESTION_COUNT_KEY + dto.getId(), "comment"));
+        dto.setCollectCount(redisCount.hGet(QUESTION_COUNT_KEY + dto.getId(), "collect"));
     }
 
     public void checkQuestionExist(Long id) {
