@@ -22,6 +22,11 @@ public class MailSendConstants {
     public static final String EMAIL_SUFFIX = "@buaa.edu.cn";
 
     /**
+     *
+     */
+    public static final String SUBJECT_FORGET_USERNAME = "找回用户名";
+
+    /**
      * 找回用户名
      */
     public static final String FORGET_TEXT = "[源智答] 找回用户名： %s, 请勿泄漏";

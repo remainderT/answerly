@@ -328,7 +328,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         message.setFrom(from);
         message.setText(String.format(MailSendConstants.FORGET_TEXT, username));
         message.setTo(mail);
-        message.setSubject(MailSendConstants.SUBJECT);
+        message.setSubject(MailSendConstants.SUBJECT_FORGET_USERNAME);
         try {
             mailSender.send(message);
             return true;
