@@ -30,7 +30,7 @@ public class EsConfiguration {
         CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(
                 org.apache.http.auth.AuthScope.ANY,
-                new UsernamePasswordCredentials("elastic", "ysh030605")
+                new UsernamePasswordCredentials("elastic", "elastic")
         );
         RestHighLevelClient client = new RestHighLevelClient(
                 RestClient.builder(new HttpHost(elasticsearchHost, 9200, "http"))

@@ -41,9 +41,29 @@ public class QuestionPageRespDTO {
     private Integer commentCount;
 
     /**
+     * 收藏数
+     */
+    private Integer collectCount;
+
+    /**
      * 是否解决 0：未解决 1：已解决
      */
     private Integer solvedFlag;
+
+    /**
+     * 发布人id
+     */
+    private Long userId;
+
+    /**
+     * 发布人用户名
+     */
+    private String username;
+
+    /**
+     * 发布人头像
+     */
+    private String avatar;
 
     /**
      * 日期

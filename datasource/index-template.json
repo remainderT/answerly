@@ -45,6 +45,15 @@
       "solvedFlag": {
         "type": "keyword"
       },
+      "userId": {
+        "type": "keyword"
+      },
+      "username": {
+        "type": "keyword"
+      },
+      "avatar": {
+        "type": "keyword"
+      },
       "createTime": {
         "type": "date"
       },

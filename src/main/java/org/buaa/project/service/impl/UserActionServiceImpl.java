@@ -162,10 +162,11 @@ public class UserActionServiceImpl extends ServiceImpl<UserActionMapper, UserAct
                     userFrom.setCollectCount(userFrom.getCollectCount() + (isPositive ? 1 : -1));
                     userMapper.updateById(userFrom);
                     redisCount.hIncr(USER_COUNT_KEY + userId, "collect", isPositive ? 1 : -1);
+                    redisCount.hIncr(QUESTION_COUNT_KEY + entityId, "collect", isPositive ? 1 : -1);
                     if (isPositive) {
-                        stringRedisTemplate.opsForSet().add(QUESTION_COLLECT_SET_KEY + userId, entityId.toString());
+                        stringRedisTemplate.opsForSet().add(QUESTION_COLLECT_SET_KEY + entityId, userId.toString());
                     } else {
-                        stringRedisTemplate.opsForSet().remove(QUESTION_COLLECT_SET_KEY + userId, entityId.toString());
+                        stringRedisTemplate.opsForSet().remove(QUESTION_COLLECT_SET_KEY + entityId, userId.toString());
                     }
                     redisCount.zIncr(ACTIVITY_SCORE_KEY , userId.toString(), isPositive ? COMMENT_SCORE: -COMMENT_SCORE);
                     break;

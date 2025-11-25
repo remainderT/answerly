@@ -37,6 +37,21 @@ public class QuestionDOC {
     private Long categoryId;
 
     /**
+     * 发布人id
+     */
+    private Long userId;
+
+    /**
+     * 发布人用户名
+     */
+    private String username;
+
+    /**
+     * 发布人头像
+     */
+    private String avatar;
+
+    /**
      * 创建日期
      */
     private Long createTime;

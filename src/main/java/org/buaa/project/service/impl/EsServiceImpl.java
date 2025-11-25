@@ -27,12 +27,14 @@ import org.elasticsearch.search.suggest.SuggestBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilders;
 import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.buaa.project.common.consts.RedisCacheConstants.QUESTION_COLLECT_SET_KEY;
 import static org.buaa.project.common.consts.RedisCacheConstants.QUESTION_COUNT_KEY;
 
 /**
@@ -46,6 +48,8 @@ public class EsServiceImpl implements EsService {
     private final RestHighLevelClient client;
 
     private final RedisCount redisCount;
+
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Value("${elasticsearch.index-name}")
     private String INDEX_NAME;
@@ -117,6 +121,8 @@ public class EsServiceImpl implements EsService {
             question.setLikeCount(redisCount.hGet(QUESTION_COUNT_KEY + question.getId(), "like"));
             question.setViewCount(redisCount.hGet(QUESTION_COUNT_KEY + question.getId(), "view"));
             question.setCommentCount(redisCount.hGet(QUESTION_COUNT_KEY + question.getId(), "comment"));
+            stringRedisTemplate.opsForSet().size(QUESTION_COLLECT_SET_KEY + question.getId());
+            question.setCollectCount(redisCount.hGet(QUESTION_COUNT_KEY + question.getId(), "collect"));
 
             questionPageRespDTOS.add(question);
         });

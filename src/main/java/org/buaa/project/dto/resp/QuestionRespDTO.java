@@ -61,6 +61,11 @@ public class QuestionRespDTO {
     private Integer commentCount;
 
     /**
+     * 收藏数
+     */
+    private Integer collectCount;
+
+    /**
      * 点赞状态
      */
     private String likeStatus;
