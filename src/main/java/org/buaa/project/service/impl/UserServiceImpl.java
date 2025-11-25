@@ -318,7 +318,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     public Boolean forgetUsername(String mail) {
         SimpleMailMessage message = new SimpleMailMessage();
         LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
-                .select(UserDO::getUsername)
+                //.select(UserDO::getUsername)
                 .eq(UserDO::getMail, mail);
         UserDO user = baseMapper.selectOne(queryWrapper);
         if (user == null) {
